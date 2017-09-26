@@ -216,7 +216,7 @@ func (c *Config) register() {
 	flag.BoolVar(&c.LocalhostOnly, "localhost-only", c.LocalhostOnly,
 		"Run on localhost and only connect to localhost peers")
 	flag.BoolVar(&c.Arbitrating, "arbitrating", c.Arbitrating, "Run node in arbitrating mode")
-	flag.BoolVar(&c.TestChain, "testchain", false, "Run node in test chain")
+	flag.BoolVar(&c.TestChain, "testchain", true, "Run node in test chain")
 }
 
 var devConfig = Config{
