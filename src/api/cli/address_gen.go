@@ -79,12 +79,10 @@ func addressGenCmd() gcli.Command {
 				return printJson(w)
 			}
 
-			addrs := make([]string, 0, len(w.Entries))
 			for _, e := range w.Entries {
-				addrs = append(addrs, e.Address)
+				fmt.Println(e.Address)
 			}
-
-			return printJson(addrs)
+			return nil
 		},
 	}
 }

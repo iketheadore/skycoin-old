@@ -45,13 +45,13 @@ func main() {
 			entropy, err := bip39.NewEntropy(128)
 			if err != nil {
 				fmt.Printf("new entropy failed when new wallet seed: %v\n", err)
-				return
+				os.Exit(1)
 			}
 
 			mnemonic, err := bip39.NewMnemonic(entropy)
 			if err != nil {
 				fmt.Printf("new mnemonic failed when new wallet seed: %v\n", err)
-				return
+				os.Exit(1)
 			}
 
 			*seed = mnemonic
@@ -76,18 +76,7 @@ func main() {
 		return
 	}
 
-	// only show the address, no more info
-	addrs := make([]string, 0, len(w.Entries))
-
 	for _, e := range w.Entries {
-		addrs = append(addrs, e.Address)
+		fmt.Println(e.Address)
 	}
-
-	v, err := json.MarshalIndent(addrs, "", "    ")
-	if err != nil {
-		fmt.Println("Error formating address list:", err)
-		return
-	}
-
-	fmt.Println(string(v))
 }

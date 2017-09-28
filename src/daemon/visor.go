@@ -205,11 +205,16 @@ func (vs *Visor) AnnounceTxns(pool *Pool, txns []cipher.SHA256) {
 	if vs.Config.Disabled {
 		return
 	}
-	if len(txns) > 0 {
-		if err := pool.Pool.BroadcastMessage(NewAnnounceTxnsMessage(txns)); err != nil {
+	if len(txns) <= 0 {
+		return
+	}
+
+	vs.strand(func() {
+		m := NewAnnounceTxnsMessage(txns)
+		if err := pool.Pool.BroadcastMessage(m); err != nil {
 			logger.Debug("Broadcast AnnounceTxnsMessage failed, err:%v", err)
 		}
-	}
+	})
 }
 
 func divideHashes(hashes []cipher.SHA256, n int) [][]cipher.SHA256 {
@@ -427,12 +432,13 @@ func (vs *Visor) EstimateBlockchainLength() uint64 {
 	return maxLen
 }
 
-// HeadBkSeq returns the head sequence, returns -1 if blockchain is empty
-func (vs *Visor) HeadBkSeq() (seq uint64) {
+// HeadBkSeq returns the head sequence
+func (vs *Visor) HeadBkSeq() uint64 {
+	var seq uint64
 	vs.strand(func() {
 		seq = vs.v.HeadBkSeq()
 	})
-	return
+	return seq
 }
 
 // ExecuteSignedBlock executes signed block
