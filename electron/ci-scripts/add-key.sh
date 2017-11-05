@@ -27,5 +27,3 @@ echo " ****** "
 echo "find indentities keychains: "
 security find-identity -p codesigning  ~/Library/Keychains/$KEY_CHAIN
 echo " ****** "
-
-export CSC_NAME="skycoin_cert"
