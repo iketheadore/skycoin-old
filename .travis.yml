@@ -1,7 +1,22 @@
+sudo: required
+dist: trusty
 language: go
 
 go:
     - 1.9
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+    - os: osx
+      osx_image: xcode 8.3
+
+install:
+  - ./electron/ci-scripts/install_deps.sh
+
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./electron/ci-scripts/add-key.sh ;fi
 
 install:
   - go get -t ./...
@@ -20,7 +35,30 @@ script:
   - vendorcheck ./...
   - go test ./cmd/...
   - go test ./src/...
+  # build wallets
+  - cd electron
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64' ;fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh darwin/amd64 ;fi
+  - cd ../
 
 # after_script:
 #   - golint -set_exit_status ./src/...
 #   - golint -set_exit_status ./cmd/...
+
+
+notifications:
+  email: false
+
+# after_success:
+#   - sh ./electron/set_tags.sh
+
+# deploy:
+#   provider: releases
+#   api_key:
+#     secure: gbweiQ63jVliz0TMsVWFCpuQv0sQ4x0SabdKh4Y5NncqMcUTCryy1Lr8nPXC1dGaIDy8ZXDcYMeVM+cBj4GolGj5EDvCkTtlrpyUsZ73Oj20pEdbX6TA6JVlAIsO9N/knJFl3ylXfFPEkXJSdaLwQCEWQuBz8hF4QETl693g4d47n3XLOY5e4N6YVZMrz+3KGNf4k0lrxV8eKVVaXMgeBuRYL13pVEuDXLEXQVa+2gUuDNDgCsxlb8yeyXWmYgVIDOM6euZ63wYGqcTBZQoctgxFtPU6VkACUinL3H584oikFtFH45n1UiWPpE9jBtorUBDpESCByfqvsUPZMimGxvUIAARh/aw1cM6SQs0+53lqPB+p8kG9SGb+/muU1BugaKdKTufR5jNG5SxUHVWKQfhV1U1lqDfgQMn9kWdkeCHrpvnLLIZVaj0l4cZNtiYx7KdLFdoFN8XJjgxbT9E3uFSGGxVWgH2RAvrob0fHThTd2hmVwduWb2Zn04D4zNS3X070/hclY+Uze2uWZR73JLgvojxQYPCWxJmLCcc6ogDo0j8esfNIhRYhRDIaYgC+A5avsStwm4wstn5H5CcaiQ9HF0SjG5L1PFej4vn62gvoT2mWdJIGN1NHVWfQySALKfZp5vRcniTPE9sLE7i6B8jR63ZFJMMaoFBWBxM2/W8=
+#   file_glob: true
+#   file: electron/release/*
+#   skip_cleanup: true
+#   on:
+#     repo: iketheadore/skycoin
+#     branch: release
