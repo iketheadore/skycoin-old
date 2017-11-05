@@ -49,7 +49,7 @@ env:
     secure: ww7z5N+q/eYQ4kkgw0dOFNIpnscjJrZulctwSVRIr2JmiiZxo5Q7CqvkKuxg0j5qmDEsMdXFhrdmdXxQxvxDFnh9irRmtoL+0Icp6Kj9itvz0tt/DciB9nkScTSmosxFdgQcHMm3ptsg3JHGb5eOlJG4QHYOsWmun2aYlnj3WEQzpJ59AgB9pI/QNrgd+Jafdy7QiOKzVQeNaSO0QStxH9SGxuKZVi/wO1H78LEf6DfibYVV9Wi3Yp5gRgRx1zWx059/FGWzENR4Z2zeV8N5dPd5lWFUswfPYXfGA10hInE9VJJQlAyxEJ7D7jOzbn5VQgO4u+c0VH4ro6xwgl4M+Eh4BLiFXMFa/3vwMu5VwtigzTzTYSx/bfGLoRo7O4BLj31zh4hLYnThCS/MXyehbFdNyVIeoPxM2RJRUKca32WZfBEVHXRQWSj26ogyUYcdv3DPvNDgCpqHjOOOK6Y3PDEx7J43BuYSJ7wI8T3wEnWzqwPHS/VQ1+8PpOI631WuQc/Ts8HIlO8x0Q8/Q/jP6NsP+80IiV79yGF2qwpML6u+CCOg834VANrjkEgx+QK4y3wwou++Wy5XP8GxVDAkRB+3ed2DJduMN65RKHZh10GyEB5h2E982oAasIZcHOQ34hg90qSJMCb+LJ6tqWrCaclTLKP+C3Nmk2MLMWzU3WY=
 
 after_success:
-  - sh ls ./electron/release
+  - sh ls ./electron/release/
 #   - sh ./electron/set_tags.sh
 
 # deploy:
