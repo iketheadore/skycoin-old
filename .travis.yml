@@ -24,7 +24,14 @@ matrix:
   - os: osx
     osx_image: xcode 9.0
 
+before_install:
+  - mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v2.2.0/git-lfs-linux-amd64-2.2.0.tar.gz | tar -xz -C /tmp/git-lfs --strip-components 1 && /tmp/git-lfs/git-lfs pull
+  - curl -L https://yarnpkg.com/latest.tar.gz | tar xvz && mv dist $HOME/.yarn
+  - export PATH="$HOME/.yarn/bin:$PATH"
+  - sudo add-apt-repository ppa:ubuntu-wine/ppa -y && sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list && sudo apt-get update && sudo apt-get install --no-install-recommends -y mono-devel ca-certificates-mono wine1.8 gcc-multilib g++-multilib icnsutils graphicsmagick xz-utils
+
 install:
+  - yarn
   - ./ci-scripts/install_deps.sh
 
 before_script:
