@@ -3,16 +3,33 @@ dist: trusty
 language: go
 go:
 - 1.9
+
+env:
+  global:
+    - secure: ww7z5N+q/eYQ4kkgw0dOFNIpnscjJrZulctwSVRIr2JmiiZxo5Q7CqvkKuxg0j5qmDEsMdXFhrdmdXxQxvxDFnh9irRmtoL+0Icp6Kj9itvz0tt/DciB9nkScTSmosxFdgQcHMm3ptsg3JHGb5eOlJG4QHYOsWmun2aYlnj3WEQzpJ59AgB9pI/QNrgd+Jafdy7QiOKzVQeNaSO0QStxH9SGxuKZVi/wO1H78LEf6DfibYVV9Wi3Yp5gRgRx1zWx059/FGWzENR4Z2zeV8N5dPd5lWFUswfPYXfGA10hInE9VJJQlAyxEJ7D7jOzbn5VQgO4u+c0VH4ro6xwgl4M+Eh4BLiFXMFa/3vwMu5VwtigzTzTYSx/bfGLoRo7O4BLj31zh4hLYnThCS/MXyehbFdNyVIeoPxM2RJRUKca32WZfBEVHXRQWSj26ogyUYcdv3DPvNDgCpqHjOOOK6Y3PDEx7J43BuYSJ7wI8T3wEnWzqwPHS/VQ1+8PpOI631WuQc/Ts8HIlO8x0Q8/Q/jP6NsP+80IiV79yGF2qwpML6u+CCOg834VANrjkEgx+QK4y3wwou++Wy5XP8GxVDAkRB+3ed2DJduMN65RKHZh10GyEB5h2E982oAasIZcHOQ34hg90qSJMCb+LJ6tqWrCaclTLKP+C3Nmk2MLMWzU3WY=
+    - ELECTRON_CACHE: $HOME/.cache/electron
+    - ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
+
+cache:
+  directories:
+  - node_modules
+  - $HOME/.cache/electron
+  - $HOME/.cache/electron-builder
+  - $HOME/.npm/_prebuilds
+
 matrix:
   include:
   - os: linux
     dist: trusty
   - os: osx
     osx_image: xcode 8.3
+
 install:
-- ./ci-scripts/install_deps.sh
+  - ./ci-scripts/install_deps.sh
+
 before_script:
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./ci-scripts/add-key.sh ;fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./ci-scripts/add-key.sh ;fi
+
 
 # install:
 #   - go get -t ./...
@@ -33,7 +50,7 @@ script:
   # - go test ./src/...
   # build wallets
 - cd electron
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64 windows/amd64' ;fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64' ;fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh darwin/amd64 ;fi
 - cd ../
 
@@ -41,12 +58,9 @@ script:
 #   - golint -set_exit_status ./src/...
 #   - golint -set_exit_status ./cmd/...
 
-
 notifications:
   email: false
-env:
-  global:
-    secure: ww7z5N+q/eYQ4kkgw0dOFNIpnscjJrZulctwSVRIr2JmiiZxo5Q7CqvkKuxg0j5qmDEsMdXFhrdmdXxQxvxDFnh9irRmtoL+0Icp6Kj9itvz0tt/DciB9nkScTSmosxFdgQcHMm3ptsg3JHGb5eOlJG4QHYOsWmun2aYlnj3WEQzpJ59AgB9pI/QNrgd+Jafdy7QiOKzVQeNaSO0QStxH9SGxuKZVi/wO1H78LEf6DfibYVV9Wi3Yp5gRgRx1zWx059/FGWzENR4Z2zeV8N5dPd5lWFUswfPYXfGA10hInE9VJJQlAyxEJ7D7jOzbn5VQgO4u+c0VH4ro6xwgl4M+Eh4BLiFXMFa/3vwMu5VwtigzTzTYSx/bfGLoRo7O4BLj31zh4hLYnThCS/MXyehbFdNyVIeoPxM2RJRUKca32WZfBEVHXRQWSj26ogyUYcdv3DPvNDgCpqHjOOOK6Y3PDEx7J43BuYSJ7wI8T3wEnWzqwPHS/VQ1+8PpOI631WuQc/Ts8HIlO8x0Q8/Q/jP6NsP+80IiV79yGF2qwpML6u+CCOg834VANrjkEgx+QK4y3wwou++Wy5XP8GxVDAkRB+3ed2DJduMN65RKHZh10GyEB5h2E982oAasIZcHOQ34hg90qSJMCb+LJ6tqWrCaclTLKP+C3Nmk2MLMWzU3WY=
+
 
 after_success:
   - ls ./electron/release/
