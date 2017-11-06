@@ -6,19 +6,17 @@ clone_folder: c:\gopath\src\github.com\account\myproject
 environment:
   GOPATH: c:\gopath
 
-install:
-  - echo %PATH%
-  - echo %GOPATH%
-  - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
-  - go version
-  - go env
-
 cache:
   - node_modules
   - '%APPDATA%\npm-cache'
   - '%USERPROFILE%\.electron'
 
 install:
+  - echo %PATH%
+  - echo %GOPATH%
+  - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
+  - go version
+  - go env
   - ps: Install-Product node 8 x64
   - npm install
 
