@@ -19,7 +19,7 @@ install:
   - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
   - go version
   - go env
-  - make windows
+  - ps: make windows
   - ps: Install-Product node 8 x64
 
 build_script:
