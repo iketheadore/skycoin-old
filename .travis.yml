@@ -51,7 +51,6 @@ script:
   # build wallets
 - cd electron
 - npm install
-- sudo ln -s /usr/lib/x86_64-linux-gnu/wine/ntdll.dll.so /usr/local/lib64/wine/ntdll.dll
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64' ;fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh 'darwin/amd64 windows/amd64' ;fi
 - cd ../
