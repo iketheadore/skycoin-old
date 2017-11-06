@@ -46,6 +46,7 @@ fi
 
 if [ ! -z "$OSX64_ELN" ]; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "run dist-mac"
         npm run dist-mac
     elif [[ "$OSTYPE" == "linux"* ]]; then
         npm run pack-mac
@@ -80,6 +81,18 @@ fi
 EXE="${PDT_NAME} Setup ${APP_VERSION}.exe"
 if [ -e "$EXE" ]; then
     mv "$EXE" "${PKG_NAME}-${APP_VERSION}-gui-win-setup.exe"
+fi
+
+// rename dmg file name
+DMG="${PKG_NAME}-${APP_VERSION}.dmg"
+if [ -e "$DMG" ]; then
+    mv "$DMG" "${PKG_NAME}-${APP_VERSION}-gui-osx.dmg"
+fi
+
+# delete app zip file
+MZIP="${PKG_NAME}-${APP_VERSION}-mac.zip"
+if [ -e "$MZIP" ]; then
+    rm "$MZIP"
 fi
 
 # clean unpacked folders

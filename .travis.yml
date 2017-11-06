@@ -33,7 +33,7 @@ script:
   # - go test ./src/...
   # build wallets
 - cd electron
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64' ;fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64 windows/amd64' ;fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh darwin/amd64 ;fi
 - cd ../
 
