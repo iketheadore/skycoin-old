@@ -11,6 +11,5 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
     sudo npm install --global electron-builder
     sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
 elif [[ $TRAVIS_OS_NAME == 'osx' ]]; then
-    sudo brew install wine --without-x11
-    sudo brew install mono
+    brew install wine --without-x11
 fi
