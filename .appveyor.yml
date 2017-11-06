@@ -20,11 +20,10 @@ install:
   - go version
   - go env
   - ps: Install-Product node 8 x64
-  - ps: bash ./build.sh windows/amd64
 
 build_script:
   - cd electron
   - npm install
-  - build.sh 'windows/amd64'
+  - ps: bash ./build.sh 'windows/amd64'
 
 test: off
