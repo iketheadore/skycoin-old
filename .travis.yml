@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 dist: trusty
 language: go
 go:
@@ -57,6 +57,9 @@ script:
 # after_script:
 #   - golint -set_exit_status ./src/...
 #   - golint -set_exit_status ./cmd/...
+
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine 
 
 notifications:
   email: false
