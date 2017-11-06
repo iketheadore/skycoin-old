@@ -83,7 +83,7 @@ if [ -e "$EXE" ]; then
     mv "$EXE" "${PKG_NAME}-${APP_VERSION}-gui-win-setup.exe"
 fi
 
-// rename dmg file name
+# rename dmg file name
 DMG="${PKG_NAME}-${APP_VERSION}.dmg"
 if [ -e "$DMG" ]; then
     mv "$DMG" "${PKG_NAME}-${APP_VERSION}-gui-osx.dmg"
