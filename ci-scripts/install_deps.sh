@@ -10,7 +10,10 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
     sudo apt-get install nodejs
     sudo npm install --global electron-builder
     sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
-elif [[ $TRAVIS_OS_NAME == 'osx' ]]; then
-    brew update
-    brew install wine --without-x11
+
+    sudo apt-get install software-properties-common
+    sudo add-apt-repository ppa:ubuntu-wine/ppa -y
+    sudo apt-get update
+    sudo apt-get install --no-install-recommends -y wine1.8
+# elif [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 fi
