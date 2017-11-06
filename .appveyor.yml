@@ -6,6 +6,7 @@ clone_folder: c:\gopath\src\github.com\iketheadore\skycoin
 
 environment:
   GOPATH: c:\gopath
+  GOX_OUTPUT: .gox_output
 
 cache:
   - node_modules
@@ -18,6 +19,7 @@ install:
   - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
   - go version
   - go env
+  - make windows
   - ps: Install-Product node 8 x64
 
 build_script:

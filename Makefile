@@ -1,5 +1,38 @@
 .DEFAULT_GOAL := help
-.PHONY: run run-help test lint check format install-linters release clean help
+.PHONY: link windows run run-help test lint check format install-linters release clean help
+
+BINARY = skycoin
+GOARCH = amd64
+
+VERSION?=?
+COMMIT=$(shell git rev-parse HEAD)
+
+# Symlink into GOPATH
+GITHUB_USERNAME=iketheadore
+BUILD_DIR=${GOPATH}/src/github.com/${GITHUB_USERNAME}/${BINARY}
+CURRENT_DIR=$(shell pwd)
+BUILD_DIR_LINK=$(shell readlink ${BUILD_DIR})
+
+# Setup the -ldflags option for go build here, interpolate the variable values
+LDFLAGS = -ldflags "-X main.Version=${VERSION} -X main.Commit=${COMMIT}"
+
+# Build the project
+all: link clean test vet linux darwin windows
+
+link:
+	BUILD_DIR=${BUILD_DIR}; \
+	BUILD_DIR_LINK=${BUILD_DIR_LINK}; \
+	CURRENT_DIR=${CURRENT_DIR}; \
+	if [ "$${BUILD_DIR_LINK}" != "$${CURRENT_DIR}" ]; then \
+	    echo "Fixing symlinks for build"; \
+	    rm -f $${BUILD_DIR}; \
+	    ln -s $${CURRENT_DIR} $${BUILD_DIR}; \
+	fi
+
+windows:
+	cd ${BUILD_DIR}; \
+	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o ${BINARY}-windows-${GOARCH}.exe . ; \
+	cd - >/dev/null
 
 # Static files directory
 STATIC_DIR = src/gui/static
