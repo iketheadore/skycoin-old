@@ -25,20 +25,16 @@ matrix:
   - os: linux
     dist: trusty
   - os: osx
-    osx_image: xcode 9.0
+    osx_image: xcode9.0
 
 # before_install:
-  # - mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v2.2.0/git-lfs-linux-amd64-2.2.0.tar.gz | tar -xz -C /tmp/git-lfs --strip-components 1 && /tmp/git-lfs/git-lfs pull
-  # - sudo add-apt-repository ppa:ubuntu-wine/ppa -y && sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && echo "deb http://download.mono-project.com/repo/debian wheezy main" | sudo tee /etc/apt/sources.list.d/mono-xamarin.list && sudo apt-get update && sudo apt-get install --no-install-recommends -y mono-devel ca-certificates-mono wine1.8 gcc-multilib g++-multilib icnsutils graphicsmagick xz-utils
-  
-before_install:
-  # Repo for newer Node.js versions
-  - curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-  # Repo for Yarn
-  - sudo apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3
-  - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  - sudo apt-get update -qq
-  - sudo apt-get install -y -qq yarn
+#   # Repo for newer Node.js versions
+#   - curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+#   # Repo for Yarn
+#   - sudo apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3
+#   - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+#   - sudo apt-get update -qq
+#   - sudo apt-get install -y -qq yarn
 
 install:
   - ./ci-scripts/install_deps.sh
@@ -68,7 +64,7 @@ script:
 - cd electron
 - yarn
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64' ;fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh 'windows/amd64' ;fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh 'darwin/amd64' ;fi
 - cd ../
 
 # after_script:

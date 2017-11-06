@@ -21,6 +21,7 @@
             ]
         },
         "win": {
+            "target": "nsis",
             "extraFiles": [
                 {
                     "from": ".gox_output/${os}_${arch}",
