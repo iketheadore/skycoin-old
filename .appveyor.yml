@@ -1,7 +1,7 @@
 platform:
   - x64
 
-clone_folder: c:\gopath\src\github.com\account\myproject
+clone_folder: c:\gopath\src\github.com\iketheadore\skycoin
 
 environment:
   GOPATH: c:\gopath
