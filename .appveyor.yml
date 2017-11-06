@@ -19,8 +19,8 @@ install:
   - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
   - go version
   - go env
-  - ps: git rev-parse HEAD
   - ps: Install-Product node 8 x64
+  - ps: bash ./build.sh windows/amd64
 
 build_script:
   - cd electron
