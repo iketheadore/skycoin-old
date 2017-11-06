@@ -19,10 +19,10 @@ install:
   - go version
   - go env
   - ps: Install-Product node 8 x64
-  - npm install
 
 build_script:
   - cd electron
+  - npm install
   - npm run dist-win64
 
 test: off
