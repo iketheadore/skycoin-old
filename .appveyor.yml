@@ -24,7 +24,7 @@ install:
 
 build_script:
   - cd electron
-  - npm install
+  - yarn
   - ps: bash ./build.sh 'windows/amd64'
 
 test: off
