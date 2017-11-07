@@ -23,6 +23,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
         >/dev/null
 elif [[ "$OSTYPE" == "msys"* ]]; then
     echo "Here"
+    man tar
     tar cPf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
         --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
         "../src" "../cmd" "../run.sh" "../README.md" \
