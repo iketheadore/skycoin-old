@@ -7,7 +7,7 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 pushd "${SCRIPTDIR}"
 
-if [[ "$OSTYPE" == "linux"* ]] || [[ "$OSTYPE" == "msys"* ]]; then
+if [[ "$OSTYPE" == "linux"* ]]; then
     tar cvf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
         --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
         "../src" "../cmd" "../run.sh" "../README.md" \
@@ -15,6 +15,12 @@ if [[ "$OSTYPE" == "linux"* ]] || [[ "$OSTYPE" == "msys"* ]]; then
         >/dev/null
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     tar cvf "${SRC_TAR}" --exclude=electron \
+        --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
+        "../src" "../cmd" "../run.sh" "../README.md" \
+        "../Installation.md" "../CHANGELOG.md" \
+        >/dev/null
+elif [[ "$OSTYPE" == "msys"* ]]; then
+    tar cvfP "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
         --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
         "../src" "../cmd" "../run.sh" "../README.md" \
         "../Installation.md" "../CHANGELOG.md" \
