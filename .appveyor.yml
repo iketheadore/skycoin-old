@@ -28,3 +28,16 @@ build_script:
   - ps: bash ./build.sh 'windows/amd64'
 
 test: off
+
+deploy:
+  release: skycoin-v$(appveyor_build_version)
+  description: 'Release description'
+  provider: GitHub
+  auth_token:
+    secure: gbweiQ63jVliz0TMsVWFCpuQv0sQ4x0SabdKh4Y5NncqMcUTCryy1Lr8nPXC1dGaIDy8ZXDcYMeVM+cBj4GolGj5EDvCkTtlrpyUsZ73Oj20pEdbX6TA6JVlAIsO9N/knJFl3ylXfFPEkXJSdaLwQCEWQuBz8hF4QETl693g4d47n3XLOY5e4N6YVZMrz+3KGNf4k0lrxV8eKVVaXMgeBuRYL13pVEuDXLEXQVa+2gUuDNDgCsxlb8yeyXWmYgVIDOM6euZ63wYGqcTBZQoctgxFtPU6VkACUinL3H584oikFtFH45n1UiWPpE9jBtorUBDpESCByfqvsUPZMimGxvUIAARh/aw1cM6SQs0+53lqPB+p8kG9SGb+/muU1BugaKdKTufR5jNG5SxUHVWKQfhV1U1lqDfgQMn9kWdkeCHrpvnLLIZVaj0l4cZNtiYx7KdLFdoFN8XJjgxbT9E3uFSGGxVWgH2RAvrob0fHThTd2hmVwduWb2Zn04D4zNS3X070/hclY+Uze2uWZR73JLgvojxQYPCWxJmLCcc6ogDo0j8esfNIhRYhRDIaYgC+A5avsStwm4wstn5H5CcaiQ9HF0SjG5L1PFej4vn62gvoT2mWdJIGN1NHVWfQySALKfZp5vRcniTPE9sLE7i6B8jR63ZFJMMaoFBWBxM2/W8=
+  artifact: ./release            # upload all NuGet packages to release assets
+  draft: false
+  prerelease: true
+  on:
+    branch: rl                 # release from master branch only
+    appveyor_repo_tag: false        # deploy on tag push only

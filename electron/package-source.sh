@@ -5,10 +5,12 @@ SRC_TAR="tmp-src-snapshot.tar"
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+echo "script dir:" + "$SCRIPTDIR"
+
 pushd "${SCRIPTDIR}"
 
 if [[ "$OSTYPE" == "linux"* ]]; then
-    tar cvf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
+    tar cPvf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
         --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
         "../src" "../cmd" "../run.sh" "../README.md" \
         "../Installation.md" "../CHANGELOG.md" \
