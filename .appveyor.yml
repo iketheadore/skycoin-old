@@ -9,9 +9,8 @@ environment:
   GOX_OUTPUT: .gox_output
 
 cache:
-  - node_modules
-  - '%APPDATA%\npm-cache'
-  - '%LOCALAPPDATA%/Yarn'
+  - 'electron\node_modules'
+  - '%LOCALAPPDATA%\Yarn'
   - '%USERPROFILE%\.electron'
 
 install:
@@ -33,7 +32,7 @@ test: off
 deploy:
   release: skycoin-v$(appveyor_build_version)
   description: 'Release description'
-  provider: GitHub
+  provider: gitHub
   auth_token:
     secure: 5dGq3YJsuBBFtqRfgqTryWwa1fasgKWTgqiurJsY1lEtoqzrhdY3GygjpPiwiy9R
   artifact: ./release/*            # upload all NuGet packages to release assets
@@ -41,4 +40,4 @@ deploy:
   prerelease: true
   on:
     branch: rl                 # release from master branch only
-    appveyor_repo_tag: false        # deploy on tag push only
+    appveyor_repo_tag: true        # deploy on tag push only
