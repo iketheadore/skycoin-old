@@ -22,7 +22,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
         "../Installation.md" "../CHANGELOG.md" \
         >/dev/null
 elif [[ "$OSTYPE" == "msys"* ]]; then
-    tar cvPf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
+    tar cPf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
         --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
         "../src" "../cmd" "../run.sh" "../README.md" \
         "../Installation.md" "../CHANGELOG.md" \
