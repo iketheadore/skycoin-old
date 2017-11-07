@@ -5,6 +5,7 @@
     "main": "src/electron-main.js",
     "version": "0.20.3",
     "description": "skycoin wallet",
+    "license": "MIT",
     "build": {
         "appId": "org.skycoin.skycoin",
         "nsis": {
