@@ -32,7 +32,7 @@ test: off
 deploy:
   release: skycoin-v$(appveyor_build_version)
   description: 'Release description'
-  provider: gitHub
+  provider: GitHub
   auth_token:
     secure: 5dGq3YJsuBBFtqRfgqTryWwa1fasgKWTgqiurJsY1lEtoqzrhdY3GygjpPiwiy9R
   artifact: ./release/*            # upload all NuGet packages to release assets
