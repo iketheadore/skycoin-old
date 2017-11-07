@@ -15,5 +15,4 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
     sudo add-apt-repository ppa:ubuntu-wine/ppa -y
     sudo apt-get update
     sudo apt-get install --no-install-recommends -y wine1.8
-elif [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 fi
