@@ -36,7 +36,8 @@ function copy_source {
     mkdir -p "$1"
     cp "${SRC_TAR}" "$1"
     pushd "$1"
-    tar xvf "${SRC_TAR}" >/dev/null
+    echo "HEHE"
+    tar xvPf "${SRC_TAR}" >/dev/null
     rm "${SRC_TAR}"
     popd >/dev/null
 }
