@@ -36,8 +36,8 @@ deploy:
   auth_token:
     secure: 5dGq3YJsuBBFtqRfgqTryWwa1fasgKWTgqiurJsY1lEtoqzrhdY3GygjpPiwiy9R
   artifact: ./electron/release/*            # upload all NuGet packages to release assets
-  draft: false
-  prerelease: true
+  draft: true
+  prerelease: false
   on:
     branch: rl                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
