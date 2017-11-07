@@ -7,7 +7,7 @@ SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 pushd "${SCRIPTDIR}"
 
-if [[ "$OSTYPE" == "linux"* ]]; then
+if [[ "$OSTYPE" == "linux"* ]] || [[ "OSTYPE" == "win"* ]]; then
     tar cvf "${SRC_TAR}" --owner=0 --group=0 --exclude=electron \
         --exclude=node_modules --exclude=_deprecated --exclude='.[^/\.]*' \
         "../src" "../cmd" "../run.sh" "../README.md" \
