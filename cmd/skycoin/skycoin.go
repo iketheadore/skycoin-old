@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"runtime/pprof"
+	"sync"
 	"syscall"
 	"time"
 
@@ -29,7 +31,7 @@ import (
 
 var (
 	// Version node version which will be set when build wallet by LDFLAGS
-	Version = "0.20.2"
+	Version = "0.20.3"
 	// Commit id
 	Commit = ""
 
@@ -157,6 +159,8 @@ type Config struct {
 	Arbitrating  bool
 	RPCThreadNum uint // rpc number
 	Logtofile    bool
+	Logtogui     bool
+	LogBuffSize  int
 }
 
 func (c *Config) register() {
@@ -167,8 +171,7 @@ func (c *Config) register() {
 		c.DisableOutgoingConnections, "Don't make outgoing connections")
 	flag.BoolVar(&c.DisableIncomingConnections, "disable-incoming",
 		c.DisableIncomingConnections, "Don't make incoming connections")
-	flag.BoolVar(&c.DisableNetworking, "disable-networking",
-		c.DisableNetworking, "Disable all network activity")
+	flag.BoolVar(&c.DisableNetworking, "disable-networking", c.DisableNetworking, "Disable all network activity")
 	flag.StringVar(&c.Address, "address", c.Address,
 		"IP Address to run application on. Leave empty to default to a public interface")
 	flag.IntVar(&c.Port, "port", c.Port, "Port to run application on")
@@ -243,6 +246,8 @@ func (c *Config) register() {
 	flag.BoolVar(&c.LocalhostOnly, "localhost-only", c.LocalhostOnly,
 		"Run on localhost and only connect to localhost peers")
 	flag.BoolVar(&c.Arbitrating, "arbitrating", c.Arbitrating, "Run node in arbitrating mode")
+	flag.BoolVar(&c.Logtogui, "logtogui", true, "log to gui")
+	flag.IntVar(&c.LogBuffSize, "logbufsize", c.LogBuffSize, "Log size saved in memeory for gui show")
 }
 
 var devConfig = Config{
@@ -312,7 +317,8 @@ var devConfig = Config{
 	HTTPProf: false,
 	// Will force it to connect to this ip:port, instead of waiting for it
 	// to show up as a peer
-	ConnectTo: "",
+	ConnectTo:   "",
+	LogBuffSize: 8388608, //1024*1024*8
 }
 
 // Parse prepare the config
@@ -413,7 +419,7 @@ func catchDebug() {
 }
 
 // init logging settings
-func initLogging(dataDir string, level string, color, logtofile bool) (func(), error) {
+func initLogging(dataDir string, level string, color, logtofile, logtogui bool, logbuf *bytes.Buffer) (func(), error) {
 	logCfg := logging.DevLogConfig(logModules)
 	logCfg.Format = logFormat
 	logCfg.Colors = color
@@ -437,7 +443,16 @@ func initLogging(dataDir string, level string, color, logtofile bool) (func(), e
 			return nil, err
 		}
 
-		logCfg.Output = io.MultiWriter(os.Stdout, fd)
+		if logtogui {
+			logCfg.Output = io.MultiWriter(os.Stdout, fd, logbuf)
+		} else {
+			logCfg.Output = io.MultiWriter(os.Stdout, fd)
+		}
+
+	} else {
+		if logtogui {
+			logCfg.Output = io.MultiWriter(os.Stdout, logbuf)
+		}
 	}
 
 	logCfg.InitLogger()
@@ -469,8 +484,8 @@ func initProfiling(httpProf, profileCPU bool, profileCPUFile string) {
 func configureDaemon(c *Config) daemon.Config {
 	//cipher.SetAddressVersion(c.AddressVersion)
 	dc := daemon.NewConfig()
-	dc.Peers.DataDirectory = c.DataDirectory
-	dc.Peers.Disabled = c.DisablePEX
+	dc.Pex.DataDirectory = c.DataDirectory
+	dc.Pex.Disabled = c.DisablePEX
 	dc.Daemon.DisableOutgoingConnections = c.DisableOutgoingConnections
 	dc.Daemon.DisableIncomingConnections = c.DisableIncomingConnections
 	dc.Daemon.DisableNetworking = c.DisableNetworking
@@ -480,8 +495,6 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Daemon.OutgoingMax = c.MaxConnections
 	dc.Daemon.DataDirectory = c.DataDirectory
 	dc.Daemon.LogPings = !c.DisablePingPong
-
-	daemon.DefaultConnections = DefaultConnections
 
 	if c.OutgoingConnectionsRate == 0 {
 		c.OutgoingConnectionsRate = time.Millisecond
@@ -533,37 +546,76 @@ func Run(c *Config) {
 
 	initProfiling(c.HTTPProf, c.ProfileCPU, c.ProfileCPUFile)
 
-	closelog, err := initLogging(c.DataDirectory, c.LogLevel, c.ColorLog, c.Logtofile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	var wg sync.WaitGroup
 
 	// If the user Ctrl-C's, shutdown properly
 	quit := make(chan struct{})
 
-	go catchInterrupt(quit)
-	// Watch for SIGUSR1
-	go catchDebug()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		catchInterrupt(quit)
+	}()
 
+	// Watch for SIGUSR1
+	wg.Add(1)
+	func() {
+		defer wg.Done()
+		go catchDebug()
+	}()
+
+	// creates blockchain instance
 	dconf := configureDaemon(c)
-	d, err := daemon.NewDaemon(dconf)
+
+	db, err := visor.OpenDB(dconf.Visor.Config.DBPath)
+	if err != nil {
+		logger.Error("Database failed to open: %v. Is another skycoin instance running?", err)
+		return
+	}
+
+	d, err := daemon.NewDaemon(dconf, db, DefaultConnections)
 	if err != nil {
 		logger.Error("%v", err)
 		return
 	}
 
+	closelog, err := initLogging(c.DataDirectory, c.LogLevel, c.ColorLog, c.Logtofile, c.Logtogui, &d.LogBuff)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if c.Logtogui {
+		go func(buf *bytes.Buffer, quit chan struct{}) {
+			for {
+				select {
+				case <-quit:
+					logger.Info("Logbuff service closed normally")
+					return
+				case <-time.After(1 * time.Second): //insure logbuff size not exceed required size, like lru
+					for buf.Len() > c.LogBuffSize {
+						_, err := buf.ReadString(byte('\n')) //discard one line
+						if err != nil {
+							continue
+						}
+					}
+				}
+			}
+		}(&d.LogBuff, quit)
+	}
+
 	errC := make(chan error, 1)
 
+	wg.Add(1)
 	go func() {
-		errC <- d.Run()
+		defer wg.Done()
+		d.Run()
 	}()
 
 	var rpc *webrpc.WebRPC
 	// start the webrpc
 	if c.RPCInterface {
 		rpcAddr := fmt.Sprintf("%v:%v", c.RPCInterfaceAddr, c.RPCInterfacePort)
-		rpc, err := webrpc.New(rpcAddr, d.Gateway)
+		rpc, err = webrpc.New(rpcAddr, d.Gateway)
 		if err != nil {
 			logger.Error("%v", err)
 			return
@@ -571,8 +623,12 @@ func Run(c *Config) {
 		rpc.ChanBuffSize = 1000
 		rpc.WorkerNum = c.RPCThreadNum
 
+		wg.Add(1)
 		go func() {
-			errC <- rpc.Run()
+			defer wg.Done()
+			if err := rpc.Run(); err != nil {
+				errC <- err
+			}
 		}()
 	}
 
@@ -609,7 +665,10 @@ func Run(c *Config) {
 		}
 
 		if c.LaunchBrowser {
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
+
 				// Wait a moment just to make sure the http interface is up
 				time.Sleep(time.Millisecond * 100)
 
@@ -655,13 +714,13 @@ func Run(c *Config) {
 	}
 
 	logger.Info("Shutting down...")
-
 	if rpc != nil {
 		rpc.Shutdown()
 	}
 	gui.Shutdown()
 	d.Shutdown()
 	closelog()
+	wg.Wait()
 	logger.Info("Goodbye")
 }
 

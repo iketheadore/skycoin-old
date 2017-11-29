@@ -1,3 +1,5 @@
+![skycoin logo](https://user-images.githubusercontent.com/26845312/32426705-d95cb988-c281-11e7-9463-a3fce8076a72.png)
+
 # Skycoin
 
 [![Build Status](https://travis-ci.org/skycoin/skycoin.svg)](https://travis-ci.org/skycoin/skycoin)
@@ -8,7 +10,7 @@ Skycoin is a next-generation cryptocurrency.
 
 Skycoin improves on Bitcoin in too many ways to be addressed here.
 
-Skycoin is small part of OP Redecentralize and OP Darknet Plan.
+Skycoin is a small part of OP Redecentralize and OP Darknet Plan.
 
 ## Links
 
@@ -31,6 +33,7 @@ Skycoin is small part of OP Redecentralize and OP Darknet Plan.
     - [Wallet REST API](#wallet-rest-api)
     - [JSON-RPC 2.0 API](#json-rpc-20-api)
     - [Skycoin command line interface](#skycoin-command-line-interface)
+- [Contributing a node to the network](#contributing-a-node-to-the-network)
 - [Development](#development)
     - [Modules](#modules)
     - [Running Tests](#running-tests)
@@ -95,6 +98,12 @@ make ARGS="--launch-browser=false" run
 
 [CLI command API](cmd/cli/README.md).
 
+## Contributing a node to the network
+
+Add your node's ip:port to the [peers.txt](./peers.txt) file.
+This file will be periodically uploaded to https://downloads.skycoin.net/blockchain/peers.txt
+and used to seed client with peers.
+
 ## Development
 
 We have two branches: `master` and `develop`.
@@ -122,7 +131,11 @@ make test
 
 ### Formatting
 
-All `.go` source files should be formatted with `gofmt` or `goimports`.
+All `.go` source files should be formatted `goimports`.  You can do this with:
+
+```sh
+make format
+```
 
 ### Code Linting
 

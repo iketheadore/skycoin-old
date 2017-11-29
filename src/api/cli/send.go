@@ -3,8 +3,9 @@ package cli
 import (
 	"fmt"
 
-	"github.com/skycoin/skycoin/src/api/webrpc"
 	gcli "github.com/urfave/cli"
+
+	"github.com/skycoin/skycoin/src/api/webrpc"
 )
 
 func sendCmd() gcli.Command {
@@ -101,5 +102,4 @@ func SendFromAddress(c *webrpc.Client, addr, walletFile, chgAddr string, toAddrs
 	}
 
 	return c.InjectTransaction(rawTx)
-
 }

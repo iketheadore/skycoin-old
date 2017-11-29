@@ -1,18 +1,13 @@
 package visor
 
 import (
-	"crypto/sha1"
-	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"time"
 
 	"github.com/boltdb/bolt"
+
 	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/skycoin/skycoin/src/coin"
 	"github.com/skycoin/skycoin/src/util/utc"
@@ -22,8 +17,18 @@ import (
 	"github.com/skycoin/skycoin/src/util/logging"
 )
 
+const (
+	// MaxDropletPrecision represents the precision of droplets
+	MaxDropletPrecision = 0
+	// MaxDropletDivisor represents the modulus divisor when checking droplet precision rules
+	MaxDropletDivisor uint64 = 1e6
+)
+
 var (
 	logger = logging.MustGetLogger("visor")
+
+	// ErrInvalidDecimals is returned by DropletPrecisionCheck if a coin amount has an invalid number of decimal places
+	ErrInvalidDecimals = errors.New("invalid amount, too many decimal places")
 )
 
 // BuildInfo represents the build info
@@ -36,8 +41,6 @@ type BuildInfo struct {
 type Config struct {
 	// Is this the master blockchain
 	IsMaster bool
-
-	//WalletDirectory string //move out
 
 	//Public key of blockchain authority
 	BlockchainPubkey cipher.PubKey
@@ -57,10 +60,10 @@ type Config struct {
 	UnconfirmedResendPeriod time.Duration
 	// Maximum size of a block, in bytes.
 	MaxBlockSize int
-	// Divisor of coin hours required as fee. E.g. with hours=100 and factor=4,
-	// 25 additional hours are required as a fee.  A value of 0 disables
-	// the fee requirement.
-	//CoinHourBurnFactor uint64
+
+	// Modulus divisor of coin amount to control decimal place precision
+	// Valid values are 1e6, 1e5, 1e4, 1e3, 1e2, 1
+	MaxDropletDivisor uint64
 
 	// Where the blockchain is saved
 	BlockchainFile string
@@ -104,6 +107,7 @@ func NewVisorConfig() Config {
 		// UnconfirmedRefreshRate:   time.Minute * 30,
 		UnconfirmedResendPeriod: time.Minute,
 		MaxBlockSize:            1024 * 32,
+		MaxDropletDivisor:       MaxDropletDivisor,
 
 		GenesisAddress:    cipher.Address{},
 		GenesisSignature:  cipher.Sig{},
@@ -112,6 +116,23 @@ func NewVisorConfig() Config {
 	}
 
 	return c
+}
+
+// Verify verifies the configuration
+func (c Config) Verify() error {
+	if c.IsMaster {
+		if c.BlockchainPubkey != cipher.PubKeyFromSecKey(c.BlockchainSeckey) {
+			return errors.New("Cannot run in master: invalid seckey for pubkey")
+		}
+	}
+
+	switch c.MaxDropletDivisor {
+	case 1e6, 1e5, 1e4, 1e3, 1e2, 1:
+	default:
+		return errors.New("MaxDropletDivisor must be 1e6, 1e5, 1e4, 1e3, 1e2 or 1")
+	}
+
+	return nil
 }
 
 // Visor manages the Blockchain as both a Master and a Normal
@@ -127,52 +148,35 @@ type Visor struct {
 	db       *bolt.DB
 }
 
-// open the blockdb.
-func openDB(dbFile string) (*bolt.DB, error) {
-	db, err := bolt.Open(dbFile, 0600, &bolt.Options{
-		Timeout: 500 * time.Millisecond,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Open boltdb failed, %v", err)
-	}
-
-	return db, nil
-}
-
-// VsClose visor close function
-type VsClose func()
-
-// NewVisor Creates a normal Visor given a master's public key
-func NewVisor(c Config) (*Visor, VsClose, error) {
+// NewVisor creates a Visor for managing the blockchain database
+func NewVisor(c Config, db *bolt.DB) (*Visor, error) {
 	logger.Debug("Creating new visor")
-	// Make sure inputs are correct
 	if c.IsMaster {
 		logger.Debug("Visor is master")
-		if c.BlockchainPubkey != cipher.PubKeyFromSecKey(c.BlockchainSeckey) {
-			// logger.Panicf("Cannot run in master: invalid seckey for pubkey")
-			return nil, nil, errors.New("Cannot run in master: invalid seckey for pubkey")
-		}
 	}
 
-	db, bc, err := load(c.DBPath, c.BlockchainPubkey, c.Arbitrating)
+	if err := c.Verify(); err != nil {
+		return nil, err
+	}
+
+	db, bc, err := loadBlockchain(db, c.BlockchainPubkey, c.Arbitrating)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	history, err := historydb.New(db)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// creates blockchain parser instance
-	// var verifyOnce sync.Once
 	bp := NewBlockchainParser(history, bc)
 
 	bc.BindListener(bp.FeedBlock)
 
 	wltServ, err := wallet.NewService(c.WalletDirectory)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	v := &Visor{
@@ -185,108 +189,10 @@ func NewVisor(c Config) (*Visor, VsClose, error) {
 		wallets:     wltServ,
 	}
 
-	return v, func() {
-		v.bcParser.Stop()
-		db.Close()
-		logger.Info("DB closed")
-	}, nil
+	return v, nil
 }
 
-// load loads blockchain from DB and if any error occurs then delete
-// the db and create an empty blockchain.
-func load(dbPath string, pubkey cipher.PubKey, arbitrating bool) (*bolt.DB, *Blockchain, error) {
-	// creates blockchain instance
-	db, err := openDB(dbPath)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	bc, err := NewBlockchain(db, pubkey, Arbitrating(arbitrating))
-
-	if err == nil {
-		return db, bc, nil
-	}
-
-	if !strings.Contains(err.Error(), "find no signature of block") {
-		return nil, nil, err
-	}
-
-	// Recreate the block database if ErrSignatureLost occurs
-	logger.Critical("Block database signature missing, recreating db: %v", err)
-	if err := db.Close(); err != nil {
-		return nil, nil, fmt.Errorf("failed to close db: %v", err)
-	}
-
-	corruptDBPath, err := moveCorruptDB(dbPath)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to copy corrupted db: %v", err)
-	}
-
-	logger.Critical("Moved corrupted db to %s", corruptDBPath)
-
-	db, err = openDB(dbPath)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	bc, err = NewBlockchain(db, pubkey, Arbitrating(arbitrating))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return db, bc, nil
-}
-
-// moveCorruptDB moves a file to makeCorruptDBPath(dbPath)
-func moveCorruptDB(dbPath string) (string, error) {
-	newDBPath, err := makeCorruptDBPath(dbPath)
-	if err != nil {
-		return "", err
-	}
-
-	if err := os.Rename(dbPath, newDBPath); err != nil {
-		return "", err
-	}
-
-	return newDBPath, nil
-}
-
-// makeCorruptDBPath creates a $FILE.corrupt.$HASH string based on dbPath,
-// where $HASH is truncated SHA1 of $FILE.
-func makeCorruptDBPath(dbPath string) (string, error) {
-	dbFileHash, err := shaFileID(dbPath)
-	if err != nil {
-		return "", err
-	}
-
-	dbDir, dbFile := filepath.Split(dbPath)
-	newDBFile := fmt.Sprintf("%s.corrupt.%s", dbFile, dbFileHash)
-	newDBPath := filepath.Join(dbDir, newDBFile)
-
-	return newDBPath, nil
-}
-
-// shaFileID return the first 8 bytes of the SHA1 hash of the file,
-// base64-encoded
-func shaFileID(dbPath string) (string, error) {
-	fi, err := os.Open(dbPath)
-	if err != nil {
-		return "", err
-	}
-	defer fi.Close()
-
-	h := sha1.New()
-	if _, err := io.Copy(h, fi); err != nil {
-		return "", err
-	}
-
-	sum := h.Sum(nil)
-	encodedSum := base64.RawStdEncoding.EncodeToString(sum[:8])
-
-	return encodedSum, nil
-}
-
-// Run starts the visor process
+// Run starts the visor
 func (vs *Visor) Run() error {
 	if err := vs.maybeCreateGenesisBlock(); err != nil {
 		return err
@@ -297,6 +203,17 @@ func (vs *Visor) Run() error {
 	}
 
 	return vs.bcParser.Run()
+}
+
+// Shutdown shuts down the visor
+func (vs *Visor) Shutdown() {
+	defer logger.Info("DB and BlockchainParser closed")
+
+	vs.bcParser.Shutdown()
+
+	if err := vs.db.Close(); err != nil {
+		logger.Error("db.Close() error: %v", err)
+	}
 }
 
 // maybeCreateGenesisBlock creates a genesis block if necessary
@@ -358,7 +275,6 @@ func (vs *Visor) processUnconfirmedTxns() error {
 
 // GenesisPreconditions panics if conditions for genesis block are not met
 func (vs *Visor) GenesisPreconditions() {
-	//if seckey is set
 	if vs.Config.BlockchainSeckey != (cipher.SecKey{}) {
 		if vs.Config.BlockchainPubkey != cipher.PubKeyFromSecKey(vs.Config.BlockchainSeckey) {
 			logger.Panicf("Cannot create genesis block. Invalid secret key for pubkey")
@@ -374,20 +290,56 @@ func (vs *Visor) RefreshUnconfirmed() []cipher.SHA256 {
 
 // CreateBlock creates a SignedBlock from pending transactions
 func (vs *Visor) CreateBlock(when uint64) (coin.SignedBlock, error) {
-	var sb coin.SignedBlock
 	if !vs.Config.IsMaster {
 		logger.Panic("Only master chain can create blocks")
 	}
+
+	var sb coin.SignedBlock
 	if vs.Unconfirmed.Len() == 0 {
 		return sb, errors.New("No transactions")
 	}
+
+	// Gather all unconfirmed transactions
 	txns := vs.Unconfirmed.RawTxns()
+	logger.Info("Unconfirmed pool has %d transactions pending", len(txns))
+
+	// Sort them by highest fee per kilobyte
 	txns = coin.SortTransactions(txns, vs.Blockchain.TransactionFee)
+
+	// Filter transactions that do not obey droplet precision rules
+	var filteredTxns coin.Transactions
+	for _, txn := range txns {
+		skip := false
+		for _, o := range txn.Out {
+			if err := dropletPrecisionCheck(o.Coins, vs.Config.MaxDropletDivisor); err != nil {
+				skip = true
+				break
+			}
+		}
+
+		if !skip {
+			filteredTxns = append(filteredTxns, txn)
+		}
+	}
+
+	nRemoved := len(txns) - len(filteredTxns)
+	if nRemoved > 0 {
+		logger.Info("CreateBlock ignored %d transactions with too many decimal places", nRemoved)
+	}
+
+	txns = filteredTxns
+
+	// Apply block size transaction limit
 	txns = txns.TruncateBytesTo(vs.Config.MaxBlockSize)
+
+	logger.Info("Creating new block with %d transactions, head time %d", len(txns), when)
+
 	b, err := vs.Blockchain.NewBlock(txns, when)
 	if err != nil {
+		logger.Warning("Blockchain.NewBlock failed: %v", err)
 		return sb, err
 	}
+
 	return vs.SignBlock(*b), nil
 }
 
@@ -540,6 +492,13 @@ func (vs *Visor) GetBlocks(start, end uint64) []coin.SignedBlock {
 // Refactor
 // Why do does this return both error and bool
 func (vs *Visor) InjectTxn(txn coin.Transaction) (bool, error) {
+	// Ignore transactions that do not conform to decimal restrictions
+	for _, o := range txn.Out {
+		if err := DropletPrecisionCheck(o.Coins); err != nil {
+			return false, err
+		}
+	}
+
 	return vs.Unconfirmed.InjectTxn(vs.Blockchain, txn)
 }
 
@@ -737,4 +696,68 @@ func (vs Visor) GetUxOutByID(id cipher.SHA256) (*historydb.UxOut, error) {
 // GetAddrUxOuts gets all the address affected UxOuts.
 func (vs Visor) GetAddrUxOuts(address cipher.Address) ([]*historydb.UxOut, error) {
 	return vs.history.GetAddrUxOuts(address)
+}
+
+// LoadAndScanWallet loads wallet from seed and scan ahead N addresses
+func (vs Visor) LoadAndScanWallet(wltName string, seed string, scanN uint64, ops ...wallet.Option) (wallet.Wallet, error) {
+	return vs.wallets.LoadAndScanWallet(wltName, seed, scanN, vs, ops...)
+}
+
+// GetBalanceOfAddrs returns balance pairs of given addreses
+func (vs Visor) GetBalanceOfAddrs(addrs []cipher.Address) ([]wallet.BalancePair, error) {
+	var bps []wallet.BalancePair
+	auxs := vs.Blockchain.Unspent().GetUnspentsOfAddrs(addrs)
+	spendUxs, err := vs.Unconfirmed.SpendsOfAddresses(addrs, vs.Blockchain.Unspent())
+	if err != nil {
+		return nil, fmt.Errorf("get unconfirmed spending failed when checking addresses balance: %v", err)
+	}
+
+	head, err := vs.Blockchain.Head()
+	if err != nil {
+		return nil, err
+	}
+
+	recvUxs, err := vs.Unconfirmed.RecvOfAddresses(head.Head, addrs)
+	if err != nil {
+		return nil, fmt.Errorf("get unconfirmed receiving failed when checking addresses balance: %v", err)
+	}
+
+	headTime := head.Time()
+	for _, addr := range addrs {
+		uxs, ok := auxs[addr]
+		if !ok {
+			bps = append(bps, wallet.BalancePair{})
+			continue
+		}
+
+		outUxs := spendUxs[addr]
+		inUxs := recvUxs[addr]
+		predictedUxs := uxs.Sub(outUxs).Add(inUxs)
+
+		coins := uxs.Coins()
+		coinHours := uxs.CoinHours(headTime)
+		pcoins := predictedUxs.Coins()
+		pcoinHours := predictedUxs.CoinHours(headTime)
+		bp := wallet.BalancePair{
+			Confirmed: wallet.Balance{Coins: coins, Hours: coinHours},
+			Predicted: wallet.Balance{Coins: pcoins, Hours: pcoinHours},
+		}
+
+		bps = append(bps, bp)
+	}
+
+	return bps, nil
+}
+
+// DropletPrecisionCheck checks if the amount is valid
+func DropletPrecisionCheck(amount uint64) error {
+	return dropletPrecisionCheck(amount, MaxDropletDivisor)
+}
+
+func dropletPrecisionCheck(amount, divisor uint64) error {
+	if amount%divisor != 0 {
+		return ErrInvalidDecimals
+	}
+
+	return nil
 }
