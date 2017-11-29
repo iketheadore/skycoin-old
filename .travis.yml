@@ -24,11 +24,14 @@ matrix:
     dist: trusty
   - os: osx
 
+before_install:
+  - cp -rf $GOPATH/src/github.com/iketheadore/skycoin $GOPATH/src/github.com/skycoin/skycoin
+
 install:
   # Install gox
   - go get github.com/mitchellh/gox
   # Install dependences for building wallet
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils  &&nvm install 8; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" == false && "$TRAVIS_BRANCH" == "ci-test" ]]; then sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils  &&nvm install 8; fi
   # for test
   - go get -t ./...
   - go get github.com/golang/lint/golint
@@ -52,11 +55,7 @@ script:
   - go test ./cmd/...
   - go test ./src/...
   # build wallets
-  - cd electron
-  - yarn
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./build.sh 'linux/amd64' ;fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./build.sh 'darwin/amd64' ;fi
-  - cd ../
+  - if [[ "$TRAVIS_PULL_REQUEST" == false && "$TRAVIS_BRANCH" == "ci-test" ]]; then ./ci-scripts/build-wallet.sh; fi
 
 # after_script:
 #   - golint -set_exit_status ./src/...
@@ -65,9 +64,6 @@ script:
 notifications:
   email: false
 
-
-after_success:
-  - ls ./electron/release/
 
 deploy:
   provider: s3
