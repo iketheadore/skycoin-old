@@ -25,6 +25,7 @@ matrix:
   - os: osx
 
 before_install:
+  - mkdir $GOPATH/src/github.com/skycoin
   - cp -rf $GOPATH/src/github.com/iketheadore/skycoin $GOPATH/src/github.com/skycoin/skycoin
 
 install:
