@@ -21,7 +21,7 @@ cache:
 matrix:
   include:
     - os: osx
-      if: type = pull_request
+      if: type != pull_request
       script: echo one
     - os: linux
 # os:
