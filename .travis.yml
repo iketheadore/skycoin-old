@@ -22,9 +22,9 @@ os:
   - linux
   - osx
 
-jobs:
-  include:
-  - stage: test
+stages:
+  - compile
+  - name: test
     if: type = pull_request
     scrpt: echo one
 
