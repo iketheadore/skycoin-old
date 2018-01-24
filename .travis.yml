@@ -21,12 +21,11 @@ cache:
 os:
   - linux
   - osx
+    stages:
+    - name: test
+      if: type = pull_request
+      scrpt: echo one
 
-stages:
-  - compile
-  - name: test
-    if: type = pull_request
-    scrpt: echo one
 
 
 # before_install:
