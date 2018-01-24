@@ -24,16 +24,6 @@ matrix:
       if: type != pull_request
       script: echo one
     - os: linux
-# os:
-#   - linux
-#   - osx
-#     includes:
-
-    # - jobs:
-    #   - compile
-    #   - name: test
-    #   # if: type = pull_request
-    #   scrpt: echo one
   
 
 
@@ -58,44 +48,46 @@ install:
   - go get golang.org/x/tools/cmd/goimports
   # - go get github.com/tsenart/deadcode
 
-jobs:
-  include:
-    - stage: test
-      before_script:
-        - if [[ "$TRAVIS_OS_NAME" == "osx" && "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/add-key.sh && npm install -g yarn ;fi
-      script: 
-        - gometalinter --disable-all -E goimports --tests --vendor ./...
-        - vendorcheck ./...
-        - go test ./cmd/...
-        - go test ./src/...
-    - stage: build electron wallet
-      script:
-        # build wallets
-        - if [[ "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/build-wallet.sh; fi
-    - stage: deploy
-      script:
-        provider: s3
-        access_key_id: $AWS_ACCESS_KEY_ID
-        secret_access_key: $AWS_SECRET_ACCESS_KEY
-        bucket: $AWS_BUCKET
-        skip_cleanup: true
-        local_dir: electron/release
-        upload-dir: wallet
-        acl: public_read
-        region: $AWS_REGION
-        on:
-          repo: skycoin/skycoin
-          branch: master
+# jobs:
+#   include:
+#     - stage: test
+#       before_script:
+#         - if [[ "$TRAVIS_OS_NAME" == "osx" && "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/add-key.sh && npm install -g yarn ;fi
+#       script: 
+#         - gometalinter --disable-all -E goimports --tests --vendor ./...
+#         - vendorcheck ./...
+#         - go test ./cmd/...
+#         - go test ./src/...
+#     - stage: build electron wallet
+#       script:
+#         # build wallets
+#         - if [[ "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/build-wallet.sh; fi
+#     - stage: deploy
+#       script:
+#         provider: s3
+#         access_key_id: $AWS_ACCESS_KEY_ID
+#         secret_access_key: $AWS_SECRET_ACCESS_KEY
+#         bucket: $AWS_BUCKET
+#         skip_cleanup: true
+#         local_dir: electron/release
+#         upload-dir: wallet
+#         acl: public_read
+#         region: $AWS_REGION
+#         on:
+#           repo: skycoin/skycoin
+#           branch: master
 
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" && "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/add-key.sh && npm install -g yarn ;fi
 
-# script:
-#   # - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E goimports -E deadcode --tests --vendor ./...
-#   - gometalinter --disable-all -E goimports --tests --vendor ./...
-#   - vendorcheck ./...
-#   - go test ./cmd/...
-#   - go test ./src/...
-#   # build wallets
-#   - if [[ "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/build-wallet.sh; fi
+script:
+  # - gometalinter --disable-all -E vet -E gofmt -E misspell -E ineffassign -E goimports -E deadcode --tests --vendor ./...
+  - gometalinter --disable-all -E goimports --tests --vendor ./...
+  - vendorcheck ./...
+  - go test ./cmd/...
+  - go test ./src/...
+  # build wallets
+  - if [[ "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/build-wallet.sh; fi
 
 # after_script:
 #   - golint -set_exit_status ./src/...
@@ -105,16 +97,16 @@ notifications:
   email: false
 
 
-# deploy:
-#   provider: s3
-#   access_key_id: $AWS_ACCESS_KEY_ID
-#   secret_access_key: $AWS_SECRET_ACCESS_KEY
-#   bucket: $AWS_BUCKET
-#   skip_cleanup: true
-#   local_dir: electron/release
-#   upload-dir: wallet
-#   acl: public_read
-#   region: $AWS_REGION
-#   on:
-#     repo: skycoin/skycoin
-#     branch: master
+deploy:
+  provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  bucket: $AWS_BUCKET
+  skip_cleanup: true
+  local_dir: electron/release
+  upload-dir: wallet
+  acl: public_read
+  region: $AWS_REGION
+  on:
+    repo: skycoin/skycoin
+    branch: master
