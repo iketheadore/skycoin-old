@@ -18,15 +18,23 @@ cache:
   - $HOME/.cache/electron-builder
   - $HOME/.npm/_prebuilds
 
-os:
-  - linux
-  - osx
-    - stages:
-      - compile
-      - name: test
-      # if: type = pull_request
-      scrpt: echo one
+matrix:
+  include:
+    - os: osx
+      if: type = pull_request
+      script: echo one
+    - os: linux
+# os:
+#   - linux
+#   - osx
+#     includes:
 
+    # - jobs:
+    #   - compile
+    #   - name: test
+    #   # if: type = pull_request
+    #   scrpt: echo one
+  
 
 
 # before_install:
