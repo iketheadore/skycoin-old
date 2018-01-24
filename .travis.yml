@@ -22,8 +22,9 @@ os:
   - linux
   - osx
     stages:
+    - compile
     - name: test
-      if: type = pull_request
+      # if: type = pull_request
       scrpt: echo one
 
 
