@@ -1,8 +1,7 @@
 sudo: required
 dist: trusty
-language: go
-# go:
-# - 1.9.x
+go:
+- 1.9.x
 
 env:
   global:
@@ -22,7 +21,6 @@ matrix:
   include:
     - os: osx
       if: type != pull_request
-      script: echo one
     - os: linux
   
 
