@@ -24,6 +24,11 @@ matrix:
     dist: trusty
   - os: osx
 
+before_install:
+  - mkdir -p $GOPATH/src/github.com/skycoin/skycoin
+  - cp -rf $GOPATH/src/github.com/iketheadore/skycoin $GOPATH/src/github.com/skycoin
+  - cd $GOPATH/src/github.com/skycoin/skycoin
+
 install:
   # Install gox
   - go get github.com/gz-c/gox
