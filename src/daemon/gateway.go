@@ -502,7 +502,8 @@ func (sv spendValidator) HasUnconfirmedSpendTx(addr []cipher.Address) (bool, err
 
 // Spend spends coins from given wallet and broadcast it,
 // return transaction or error.
-func (gw *Gateway) Spend(wltID string, coins uint64, dest cipher.Address) (*coin.Transaction, error) {
+// Sets password nil if the wallet is not encrypted, other it must be provided.
+func (gw *Gateway) Spend(wltID string, password []byte, coins uint64, dest cipher.Address) (*coin.Transaction, error) {
 	var tx *coin.Transaction
 	var err error
 	if gw.Config.DisableWalletAPI {
@@ -545,7 +546,8 @@ func (gw *Gateway) CreateWallet(wltName string, options wallet.Options) (wallet.
 }
 
 // ScanAheadWalletAddresses loads wallet from given seed and scan ahead N addresses
-func (gw *Gateway) ScanAheadWalletAddresses(wltName string, scanN uint64) (wallet.Wallet, error) {
+// Sets password nil if the wallet is not encrypted, other it must be provided.
+func (gw *Gateway) ScanAheadWalletAddresses(wltName string, password []byte, scanN uint64) (wallet.Wallet, error) {
 	var wlt wallet.Wallet
 	var err error
 	if gw.Config.DisableWalletAPI {
@@ -627,7 +629,8 @@ func (gw *Gateway) GetWalletDir() (string, error) {
 }
 
 // NewAddresses generate addresses in given wallet
-func (gw *Gateway) NewAddresses(wltID string, n uint64) ([]cipher.Address, error) {
+// Sets password nil if the wallet is not encrypted, otherwise the password must be provided.
+func (gw *Gateway) NewAddresses(wltID string, password []byte, n uint64) ([]cipher.Address, error) {
 	var addrs []cipher.Address
 	var err error
 	if gw.Config.DisableWalletAPI {

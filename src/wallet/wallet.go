@@ -27,6 +27,11 @@ var (
 
 	// ErrSpendingUnconfirmed is returned if caller attempts to spend unconfirmed outputs
 	ErrSpendingUnconfirmed = errors.New("please spend after your pending transaction is confirmed")
+
+	// ErrMissingPassword is returned if caller attempts to process encrypted wallet without password
+	ErrMissingPassword = errors.New("missing password")
+	// ErrInvalidPassword is returned if caller attempts to process encrypted wallet with wrong password
+	ErrInvalidPassword = errors.New("invalid password")
 )
 
 // CoinType represents the wallet coin type
@@ -68,9 +73,11 @@ var version = "0.1"
 
 // Options are wallet constructor options
 type Options struct {
-	Coin  CoinType
-	Label string
-	Seed  string
+	Coin     CoinType
+	Label    string
+	Seed     string
+	Encrypt  bool
+	Password []byte
 }
 
 // NewWallet generates Deterministic Wallet

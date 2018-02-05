@@ -27,6 +27,7 @@ func TestWalletSpendHandler(t *testing.T) {
 		WalletID string
 		Dst      string
 		Coins    string
+		Password string
 	}
 
 	tt := []struct {
@@ -38,6 +39,7 @@ func TestWalletSpendHandler(t *testing.T) {
 		walletID                      string
 		coins                         uint64
 		dst                           string
+		pwd                           []byte
 		gatewaySpendResult            *coin.Transaction
 		gatewaySpendErr               error
 		gatewayGetWalletBalanceResult wallet.BalancePair
@@ -141,6 +143,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:        "123",
 			coins:           12,
 			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
 			gatewaySpendErr: fee.ErrTxnNoFee,
 			spendResult: &SpendResult{
 				Error: fee.ErrTxnNoFee.Error(),
@@ -159,6 +162,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:        "123",
 			coins:           12,
 			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
 			gatewaySpendErr: wallet.ErrSpendingUnconfirmed,
 			spendResult: &SpendResult{
 				Error: wallet.ErrSpendingUnconfirmed.Error(),
@@ -177,10 +181,44 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:        "123",
 			coins:           12,
 			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
 			gatewaySpendErr: wallet.ErrInsufficientBalance,
 			spendResult: &SpendResult{
 				Error: wallet.ErrInsufficientBalance.Error(),
 			},
+		},
+		{
+			name:   "400 - missing password",
+			method: http.MethodPost,
+			body: &httpBody{
+				WalletID: "1234",
+				Dst:      "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+				Coins:    "12",
+			},
+			status:          http.StatusBadRequest,
+			err:             "400 Bad Request - missing password",
+			walletID:        "1234",
+			coins:           12,
+			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
+			gatewaySpendErr: wallet.ErrMissingPassword,
+		},
+		{
+			name:   "400 - invalid password",
+			method: http.MethodPost,
+			body: &httpBody{
+				WalletID: "1234",
+				Dst:      "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+				Coins:    "12",
+				Password: "wrong password",
+			},
+			status:          http.StatusBadRequest,
+			err:             "400 Bad Request - invalid password",
+			walletID:        "1234",
+			coins:           12,
+			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte("wrong password"),
+			gatewaySpendErr: wallet.ErrInvalidPassword,
 		},
 		{
 			name:   "404 - gw spend error wallet not exist",
@@ -195,6 +233,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:        "123",
 			coins:           12,
 			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
 			gatewaySpendErr: wallet.ErrWalletNotExist,
 			spendResult: &SpendResult{
 				Error: wallet.ErrWalletNotExist.Error(),
@@ -213,6 +252,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:        "123",
 			coins:           12,
 			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
 			gatewaySpendErr: errors.New("Spend error"),
 			spendResult: &SpendResult{
 				Error: "Spend error",
@@ -230,6 +270,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:           "1234",
 			coins:              12,
 			dst:                "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:                []byte{},
 			gatewaySpendResult: &coin.Transaction{},
 			gatewayBalanceErr:  errors.New("GetWalletBalance error"),
 			spendResult: &SpendResult{
@@ -256,6 +297,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:        "123",
 			coins:           12,
 			dst:             "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:             []byte{},
 			gatewaySpendErr: wallet.ErrWalletApiDisabled,
 			spendResult: &SpendResult{
 				Error: wallet.ErrWalletApiDisabled.Error(),
@@ -300,6 +342,36 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:           "1234",
 			coins:              12,
 			dst:                "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:                []byte{},
+			gatewaySpendResult: &coin.Transaction{},
+			spendResult: &SpendResult{
+				Balance: &wallet.BalancePair{},
+				Transaction: &visor.ReadableTransaction{
+					Length:    0,
+					Type:      0,
+					Hash:      "78877fa898f0b4c45c9c33ae941e40617ad7c8657a307db62bc5691f92f4f60e",
+					InnerHash: "0000000000000000000000000000000000000000000000000000000000000000",
+					Timestamp: 0,
+					Sigs:      []string{},
+					In:        []string{},
+					Out:       []visor.ReadableTransactionOutput{},
+				},
+			},
+		},
+		{
+			name:   "200 - OK with encrypt wallet",
+			method: http.MethodPost,
+			body: &httpBody{
+				WalletID: "1234",
+				Dst:      "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+				Coins:    "12",
+				Password: "password",
+			},
+			status:             http.StatusOK,
+			walletID:           "1234",
+			coins:              12,
+			dst:                "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:                []byte("password"),
 			gatewaySpendResult: &coin.Transaction{},
 			spendResult: &SpendResult{
 				Balance: &wallet.BalancePair{},
@@ -326,7 +398,7 @@ func TestWalletSpendHandler(t *testing.T) {
 
 			gateway := &GatewayerMock{}
 			addr, _ := cipher.DecodeBase58Address(tc.dst)
-			gateway.On("Spend", tc.walletID, tc.coins, addr).Return(tc.gatewaySpendResult, tc.gatewaySpendErr)
+			gateway.On("Spend", tc.walletID, tc.pwd, tc.coins, addr).Return(tc.gatewaySpendResult, tc.gatewaySpendErr)
 			gateway.On("GetWalletBalance", tc.walletID).Return(tc.gatewayGetWalletBalanceResult, tc.gatewayBalanceErr)
 
 			endpoint := "/wallet/spend"
@@ -341,6 +413,9 @@ func TestWalletSpendHandler(t *testing.T) {
 				}
 				if tc.body.Coins != "" {
 					v.Add("coins", tc.body.Coins)
+				}
+				if tc.body.Password != "" {
+					v.Add("password", tc.body.Password)
 				}
 			}
 
@@ -905,9 +980,11 @@ func TestWalletTransactionsHandler(t *testing.T) {
 
 func TestWalletCreateHandler(t *testing.T) {
 	type httpBody struct {
-		Seed  string
-		Label string
-		ScanN string
+		Seed     string
+		Label    string
+		ScanN    string
+		Encrypt  string
+		Password string
 	}
 
 	tt := []struct {
@@ -990,6 +1067,24 @@ func TestWalletCreateHandler(t *testing.T) {
 				Seed:  "foo",
 			},
 			gatewayCreateWalletErr: errors.New("gateway.CreateWallet error"),
+		},
+		{
+			name:   "400 - missing password",
+			method: http.MethodPost,
+			body: &httpBody{
+				Seed:    "foo",
+				Label:   "bar",
+				ScanN:   "1",
+				Encrypt: "1",
+			},
+			status: http.StatusBadRequest,
+			err:    "400 Bad Request - missing password",
+			options: wallet.Options{
+				Label:   "bar",
+				Seed:    "foo",
+				Encrypt: true,
+			},
+			gatewayCreateWalletErr: wallet.ErrMissingPassword,
 		},
 		{
 			name:   "500 - gateway.ScanAheadWalletAddresses error",
@@ -1086,12 +1181,42 @@ func TestWalletCreateHandler(t *testing.T) {
 			},
 			csrfDisabled: true,
 		},
+		{
+			name:   "200 - OK with wallet encrypted",
+			method: http.MethodPost,
+			body: &httpBody{
+				Seed:     "foo",
+				Label:    "bar",
+				ScanN:    "2",
+				Encrypt:  "1",
+				Password: "password",
+			},
+			status:  http.StatusOK,
+			err:     "",
+			wltName: "filename",
+			scnN:    2,
+			options: wallet.Options{
+				Label:    "bar",
+				Seed:     "foo",
+				Encrypt:  true,
+				Password: []byte("password"),
+			},
+			gatewayCreateWalletResult: wallet.Wallet{
+				Meta: map[string]string{
+					"filename": "filename",
+				},
+			},
+			responseBody: wallet.ReadableWallet{
+				Meta:    map[string]string{},
+				Entries: wallet.ReadableEntries{},
+			},
+		},
 	}
 
 	for _, tc := range tt {
 		gateway := &GatewayerMock{}
 		gateway.On("CreateWallet", "", tc.options).Return(tc.gatewayCreateWalletResult, tc.gatewayCreateWalletErr)
-		gateway.On("ScanAheadWalletAddresses", tc.wltName, tc.scnN-1).Return(tc.scanWalletAddressesResult, tc.scanWalletAddressesError)
+		gateway.On("ScanAheadWalletAddresses", tc.wltName, tc.options.Password, tc.scnN-1).Return(tc.scanWalletAddressesResult, tc.scanWalletAddressesError)
 
 		endpoint := "/wallet/create"
 
@@ -1105,6 +1230,12 @@ func TestWalletCreateHandler(t *testing.T) {
 			}
 			if tc.body.ScanN != "" {
 				v.Add("scan", tc.body.ScanN)
+			}
+			if tc.body.Encrypt != "" {
+				v.Add("encrypt", tc.body.Encrypt)
+			}
+			if tc.body.Password != "" {
+				v.Add("password", tc.body.Password)
 			}
 		}
 
@@ -1268,8 +1399,9 @@ func TestWalletNewSeed(t *testing.T) {
 
 func TestWalletNewAddressesHandler(t *testing.T) {
 	type httpBody struct {
-		ID  string
-		Num string
+		ID       string
+		Num      string
+		Password string
 	}
 	type Addresses struct {
 		Address []string `json:"addresses"`
@@ -1293,6 +1425,7 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 		status                    int
 		err                       string
 		walletID                  string
+		password                  []byte
 		n                         uint64
 		gatewayNewAddressesResult []cipher.Address
 		gatewayNewAddressesErr    error
@@ -1331,8 +1464,23 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 			status:   http.StatusBadRequest,
 			err:      "400 Bad Request - gateway.NewAddresses error",
 			walletID: "foo",
+			password: []byte{},
 			n:        1,
 			gatewayNewAddressesErr: errors.New("gateway.NewAddresses error"),
+		},
+		{
+			name:   "400 - missing password",
+			method: http.MethodPost,
+			body: &httpBody{
+				ID:  "foo",
+				Num: "1",
+			},
+			status:   http.StatusBadRequest,
+			err:      "400 Bad Request - missing password",
+			walletID: "foo",
+			password: []byte{},
+			n:        1,
+			gatewayNewAddressesErr: errors.New("missing password"),
 		},
 		{
 			name:   "403 - Forbidden - wallet API disabled",
@@ -1344,6 +1492,7 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 			status:   http.StatusForbidden,
 			err:      "403 Forbidden",
 			walletID: "foo",
+			password: []byte{},
 			n:        1,
 			gatewayNewAddressesErr: wallet.ErrWalletApiDisabled,
 		},
@@ -1356,6 +1505,7 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 			},
 			status:   http.StatusOK,
 			walletID: "foo",
+			password: []byte{},
 			n:        1,
 			gatewayNewAddressesResult: addrs,
 			responseBody:              responseAddresses,
@@ -1369,6 +1519,7 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 			},
 			status:   http.StatusOK,
 			walletID: "foo",
+			password: []byte{},
 			n:        0,
 			gatewayNewAddressesResult: emptyAddrs,
 			responseBody:              responseEmptyAddresses,
@@ -1387,12 +1538,27 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 			responseBody:              responseAddresses,
 			csrfDisabled:              true,
 		},
+		{
+			name:   "200 - OK encrypt wallet",
+			method: http.MethodPost,
+			body: &httpBody{
+				ID:       "foo",
+				Num:      "1",
+				Password: "password",
+			},
+			status:   http.StatusOK,
+			walletID: "foo",
+			password: []byte("password"),
+			n:        1,
+			gatewayNewAddressesResult: addrs,
+			responseBody:              responseAddresses,
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			gateway := &GatewayerMock{}
-			gateway.On("NewAddresses", tc.walletID, tc.n).Return(tc.gatewayNewAddressesResult, tc.gatewayNewAddressesErr)
+			gateway.On("NewAddresses", tc.walletID, tc.password, tc.n).Return(tc.gatewayNewAddressesResult, tc.gatewayNewAddressesErr)
 
 			endpoint := "/wallet/newAddress"
 
@@ -1403,6 +1569,9 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 				}
 				if tc.body.Num != "" {
 					v.Add("num", tc.body.Num)
+				}
+				if tc.body.Password != "" {
+					v.Add("password", tc.body.Password)
 				}
 			}
 

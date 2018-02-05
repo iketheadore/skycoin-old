@@ -61,13 +61,14 @@ func walletBalanceHandler(gateway Gatewayer) http.HandlerFunc {
 // URI: /wallet/spend
 // Method: POST
 // Args:
-//  id: wallet id
-//	dst: recipient address
-// 	coins: the number of droplet you will send
+//     id: wallet id
+//     dst: recipient address
+//     coins: the number of droplet you will send
+//     password: wallet password[optional, must be provided if the wallet is encrypted]
 // Response:
-//  balance: new balance of the wallet
-//  txn: spent transaction
-//  error: an error that may have occured after broadcast the transaction to the network
+//     balance: new balance of the wallet
+//     txn: spent transaction
+//     error: an error that may have occured after broadcast the transaction to the network
 //         if this field is not empty, the spend succeeded, but the response data could not be prepared
 func walletSpendHandler(gateway Gatewayer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -105,10 +106,13 @@ func walletSpendHandler(gateway Gatewayer) http.HandlerFunc {
 			return
 		}
 
-		tx, err := gateway.Spend(wltID, coins, dst)
+		password := r.FormValue("password")
+
+		tx, err := gateway.Spend(wltID, []byte(password), coins, dst)
 		switch err {
 		case nil:
-		case fee.ErrTxnNoFee, wallet.ErrSpendingUnconfirmed, wallet.ErrInsufficientBalance:
+		case fee.ErrTxnNoFee, wallet.ErrSpendingUnconfirmed,
+			wallet.ErrInsufficientBalance, wallet.ErrMissingPassword, wallet.ErrInvalidPassword:
 			wh.Error400(w, err.Error())
 			return
 		case wallet.ErrWalletNotExist:
@@ -166,6 +170,8 @@ func walletSpendHandler(gateway Gatewayer) http.HandlerFunc {
 //     seed: wallet seed [required]
 //     label: wallet label [required]
 //     scan: the number of addresses to scan ahead for balances [optional, must be > 0]
+//     encrypt: encrypt wallet [optional, wallet won't be encrypted if it's value is 0 or not provided, otherwise encrypt the wallet]
+//     password: password for encrypting wallet [optional, must be provided if the 'encrypt' value is 1]
 func walletCreate(gateway Gatewayer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -202,10 +208,32 @@ func walletCreate(gateway Gatewayer) http.HandlerFunc {
 			return
 		}
 
-		wlt, err := gateway.CreateWallet("", wallet.Options{
+		wltOpts := wallet.Options{
 			Seed:  seed,
 			Label: label,
-		})
+		}
+
+		encryptStr := r.FormValue("encrypt")
+		if encryptStr != "" {
+			encrypt, err := strconv.ParseBool(encryptStr)
+			if err != nil {
+				wh.Error400(w, fmt.Sprintf("invalid encrypt value: %v", err))
+				return
+			}
+
+			if encrypt {
+				password := r.FormValue("password")
+				if password == "" {
+					wh.Error400(w, "missing password")
+					return
+				}
+
+				wltOpts.Encrypt = encrypt
+				wltOpts.Password = []byte(password)
+			}
+		}
+
+		wlt, err := gateway.CreateWallet("", wltOpts)
 		if err != nil {
 			switch err {
 			case wallet.ErrWalletApiDisabled:
@@ -217,7 +245,7 @@ func walletCreate(gateway Gatewayer) http.HandlerFunc {
 			}
 		}
 
-		wlt, err = gateway.ScanAheadWalletAddresses(wlt.GetFilename(), scanN-1)
+		wlt, err = gateway.ScanAheadWalletAddresses(wlt.GetFilename(), wltOpts.Password, scanN-1)
 		if err != nil {
 			logger.Error("gateway.ScanAheadWalletAddresses failed: %v", err)
 			wh.Error500(w)
@@ -233,7 +261,8 @@ func walletCreate(gateway Gatewayer) http.HandlerFunc {
 // url: /wallet/newAddress
 // params:
 // 		id: wallet id
-// 	   num: number of address need to create, if not set the default value is 1
+// 	    num: number of address need to create, if not set the default value is 1
+//      password: wallet password [optional, must be provided if the wallet is encrypted]
 func walletNewAddresses(gateway Gatewayer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -259,7 +288,8 @@ func walletNewAddresses(gateway Gatewayer) http.HandlerFunc {
 			}
 		}
 
-		addrs, err := gateway.NewAddresses(wltID, n)
+		pwd := r.FormValue("password")
+		addrs, err := gateway.NewAddresses(wltID, []byte(pwd), n)
 		if err != nil {
 			switch err {
 			case wallet.ErrWalletApiDisabled:
