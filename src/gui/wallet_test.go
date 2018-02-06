@@ -315,6 +315,7 @@ func TestWalletSpendHandler(t *testing.T) {
 			walletID:           "1234",
 			coins:              12,
 			dst:                "2konv5no3DZvSMxf2GPVtAfZinfwqCGhfVQ",
+			pwd:                []byte{},
 			gatewaySpendResult: &coin.Transaction{},
 			spendResult: &SpendResult{
 				Balance: &wallet.BalancePair{},
@@ -1533,6 +1534,7 @@ func TestWalletNewAddressesHandler(t *testing.T) {
 			},
 			status:   http.StatusOK,
 			walletID: "foo",
+			password: []byte{},
 			n:        1,
 			gatewayNewAddressesResult: addrs,
 			responseBody:              responseAddresses,
