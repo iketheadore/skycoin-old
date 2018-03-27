@@ -8,17 +8,27 @@ go:
 matrix:
   include:
     - os: linux
+      ELECTRON_CACHE: $HOME/.cache/electron
+      ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
+      BUILD_DIR: build
+      BUILDLIB_DIR: $BUILD_DIR/libskycoin
+      LIB_DIR: lib
     - os: osx
+      ELECTRON_CACHE: $HOME/.cache/electron
+      ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
+      BUILD_DIR: build
+      BUILDLIB_DIR: $BUILD_DIR/libskycoin
+      LIB_DIR: lib
       # Do not start osx build for PR
       if: type != pull_request
 
-env:
-  global:
-    - ELECTRON_CACHE: $HOME/.cache/electron
-    - ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
-    - BUILD_DIR: build
-    - BUILDLIB_DIR: $BUILD_DIR/libskycoin
-    - LIB_DIR: lib
+# env:
+#   global:
+#     - ELECTRON_CACHE: $HOME/.cache/electron
+#     - ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
+#     - BUILD_DIR: build
+#     - BUILDLIB_DIR: $BUILD_DIR/libskycoin
+#     - LIB_DIR: lib
 
 cache:
   yarn: true
