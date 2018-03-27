@@ -5,12 +5,12 @@ go:
   - "1.9.x"
   - "1.10.x"
 
-# matrix:
-#   include:
-#     - os: linux
-#     - os: osx
-#       # Do not start osx build for PR
-#       if: type != pull_request
+matrix:
+  include:
+    - os: linux
+    - os: osx
+      # Do not start osx build for PR
+      # if: type != pull_request
 
 # env:
 #   global:
