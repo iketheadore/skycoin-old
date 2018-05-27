@@ -22,6 +22,7 @@ import (
 	"log"
 	"math"
 	"reflect"
+	"strings"
 )
 
 /*
@@ -441,13 +442,21 @@ func datasizeWrite(v reflect.Value) (int, error) {
 		sum := 0
 		for i, n := 0, t.NumField(); i < n; i++ {
 			f := t.Field(i)
-			if f.Tag.Get("enc") != "-" {
-				s, err := datasizeWrite(v.Field(i))
-				if err != nil {
-					return 0, err
-				}
-				sum += s
+			fv := v.Field(i)
+			tag := f.Tag.Get("enc")
+			if tag == "-" {
+				continue
 			}
+
+			if zeroValueWithOmitemptyTag(tag, fv, f) {
+				continue
+			}
+
+			s, err := datasizeWrite(fv)
+			if err != nil {
+				return 0, err
+			}
+			sum += s
 		}
 		return sum, nil
 
@@ -460,7 +469,6 @@ func datasizeWrite(v reflect.Value) (int, error) {
 		reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Float32, reflect.Float64:
 		return int(t.Size()), nil
-
 	default:
 		return 0, errors.New("invalid type " + t.String())
 	}
@@ -672,6 +680,10 @@ func (d *decoder) value(v reflect.Value) error {
 		}
 
 	case reflect.Slice:
+		if len(d.buf) == 0 {
+			return nil
+		}
+
 		if len(d.buf) < 4 {
 			return errors.New("Not enough buffer data to deserialize length")
 		}
@@ -698,15 +710,18 @@ func (d *decoder) value(v reflect.Value) error {
 		for i := 0; i < v.NumField(); i++ {
 			fv := v.Field(i)
 			ff := t.Field(i)
-			if ff.Tag.Get("enc") != "-" {
-				if fv.CanSet() && ff.Name != "_" {
-					if err := d.value(fv); err != nil {
-						return err
-					}
-				} else {
-					//dont decode anything
-					//d.skip(fv) //BUG!?
+			tag := ff.Tag.Get("enc")
+			if tag == "-" {
+				continue
+			}
+
+			if fv.CanSet() && ff.Name != "_" {
+				if err := d.value(fv); err != nil {
+					return err
 				}
+			} else {
+				//dont decode anything
+				//d.skip(fv) //BUG!?
 			}
 		}
 
@@ -817,6 +832,10 @@ func (d *decoder) dchk(v reflect.Value) int {
 		}
 		return c
 	case reflect.Slice:
+		if len(d.buf) == 0 {
+			return 0
+		}
+
 		if len(d.buf) < 4 {
 			return -1 //error
 		}
@@ -854,15 +873,18 @@ func (d *decoder) dchk(v reflect.Value) int {
 		for i := 0; i < v.NumField(); i++ {
 			fv := v.Field(i)
 			ff := t.Field(i)
-			if ff.Tag.Get("enc") != "-" {
-				if fv.CanSet() && ff.Name != "_" {
-					//c += d.adv(d.dchk(fv))
-					//c += d.dchk(fv)
-					c = d.cmp(c, d.dchk(fv))
-				} else {
-					//dont try to decode anything
-					//d.skip(fv) //BUG!?
-				}
+			tag := ff.Tag.Get("enc")
+			if tag == "-" {
+				continue
+			}
+
+			if fv.CanSet() && ff.Name != "_" {
+				//c += d.adv(d.dchk(fv))
+				//c += d.dchk(fv)
+				c = d.cmp(c, d.dchk(fv))
+			} else {
+				//dont try to decode anything
+				//d.skip(fv) //BUG!?
 			}
 		}
 		return c
@@ -935,13 +957,20 @@ func (e *encoder) value(v reflect.Value) {
 			// see comment for corresponding code in decoder.value()
 			v := v.Field(i)
 			f := t.Field(i)
-			if f.Tag.Get("enc") != "-" {
-				if v.CanSet() || f.Name != "_" {
-					e.value(v)
-				} else {
-					//dont write anything
-					//e.skip(v)
-				}
+			tag := f.Tag.Get("enc")
+			if tag == "-" {
+				continue
+			}
+
+			if zeroValueWithOmitemptyTag(tag, v, f) {
+				continue
+			}
+
+			if v.CanSet() || f.Name != "_" {
+				e.value(v)
+			} else {
+				//dont write anything
+				//e.skip(v)
 			}
 		}
 
@@ -1010,7 +1039,6 @@ func (e *encoder) value(v reflect.Value) {
 		case reflect.Float64:
 			e.uint64(math.Float64bits(v.Float()))
 		}
-
 	default:
 		log.Panic("Encoding unhandled type " + v.Type().Name())
 
@@ -1058,4 +1086,19 @@ func intDestSize(ptrType interface{}) int {
 		return 8
 	}
 	return 0
+}
+
+// zeroValueWithOmitemptyTag checks if the field contains 'omitempty' tag and
+// value is empty
+func zeroValueWithOmitemptyTag(tag string, v reflect.Value, f reflect.StructField) bool {
+	if !strings.Contains(tag, "omitempty") {
+		return false
+	}
+
+	switch v.Kind() {
+	case reflect.Ptr:
+		return v.IsNil()
+	default:
+		return reflect.DeepEqual(v.Interface(), reflect.Zero(f.Type).Interface())
+	}
 }
