@@ -27,7 +27,6 @@
         },
         "win": {
             "target": "nsis",
-            "category": "Network",
             "extraFiles": [
                 {
                     "from": ".gox_output/${os}_${arch}",
