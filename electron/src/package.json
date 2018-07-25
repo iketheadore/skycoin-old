@@ -2,6 +2,10 @@
   "main": "electron-main.js",
   "license": "MIT",
   "description": "skycoin wallet",
+  "repository": {
+      "type": "git",
+          "url": "github.com/skycoin/skycoin.git"
+  },
   "dependencies": {
     "axios": "^0.18.0",
     "electron-context-menu": "^0.9.1",
