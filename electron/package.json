@@ -6,11 +6,11 @@
     "version": "0.24.0",
     "description": "skycoin wallet",
     "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "github.com/skycoin/skycoin.git"
-    },
     "build": {
+        "repository": {
+            "type": "git",
+            "url": "github.com/skycoin/skycoin.git"
+        },
         "appId": "org.skycoin.skycoin",
         "nsis": {
             "oneClick": false,
@@ -27,6 +27,7 @@
         },
         "win": {
             "target": "nsis",
+            "category": "Network",
             "extraFiles": [
                 {
                     "from": ".gox_output/${os}_${arch}",
