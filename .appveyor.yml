@@ -4,9 +4,9 @@ platform:
 
 clone_folder: c:\gopath\src\github.com\skycoin\skycoin
 
-branches:
-  only:
-    - master
+# branches:
+#   only:
+#     - master
 
 environment:
   GOPATH: c:\gopath
@@ -14,7 +14,7 @@ environment:
 
 cache:
   - 'electron\node_modules'
-  - '%LOCALAPPDATA%\Yarn'
+  # - '%LOCALAPPDATA%\Yarn'
   - '%USERPROFILE%\.electron'
 
 install:
@@ -28,7 +28,8 @@ install:
 
 build_script:
   - cd electron
-  - yarn
+  # - yarn
+  - npm install
   - ps: bash ./build.sh 'windows/amd64 windows/386'
   - ps: ls release\
   - ps: cd ..
