@@ -8,7 +8,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-            "url": "github.com/skycoin/skycoin.git"
+        "url": "github.com/skycoin/skycoin.git"
     },
     "build": {
         "appId": "org.skycoin.skycoin",
