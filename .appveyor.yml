@@ -13,7 +13,7 @@ environment:
   GOX_OUTPUT: .gox_output
 
 cache:
-  - 'electron\node_modules'
+  # - 'electron\node_modules'
   # - '%LOCALAPPDATA%\Yarn'
   - '%USERPROFILE%\.electron'
 
