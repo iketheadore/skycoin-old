@@ -4,9 +4,9 @@ platform:
 
 clone_folder: c:\gopath\src\github.com\skycoin\skycoin
 
-branches:
-  only:
-    - master
+# branches:
+#   only:
+#     - master
 
 environment:
   GOPATH: c:\gopath
