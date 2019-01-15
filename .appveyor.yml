@@ -27,7 +27,8 @@ install:
 
 build_script:
   - cd electron
-  - cmd: bash ./build.sh 'windows/amd64 windows/386'
+  - cmd: bash ./build.sh 'windows/amd64'
+#   - cmd: bash ./build.sh 'windows/amd64 windows/386'
   - ps: ls release\
   - ps: cd ..
 
