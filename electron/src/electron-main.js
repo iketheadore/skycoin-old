@@ -197,7 +197,7 @@ function createWindow(url) {
       allowRunningInsecureContent: false,
       webSecurity: true,
       plugins: false,
-      preload: __dirname + '/electron-api.js',
+    //   preload: __dirname + '/electron-api.js',
     },
   });
   hwCode.setWinRef(win);
