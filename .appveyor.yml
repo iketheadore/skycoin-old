@@ -6,7 +6,7 @@ clone_folder: c:\gopath\src\github.com\skycoin\skycoin
 
 branches:
   only:
-    - master
+    - fix-err-win
 
 environment:
   GOPATH: c:\gopath
@@ -52,7 +52,7 @@ deploy:
   unzip: true
   set_public: true
   on:
-    branch: master
+    branch: fix-err-win
 
 
 notifications:
