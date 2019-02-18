@@ -26,7 +26,7 @@ import (
 
 var (
 	// Version is the CLI Version
-	Version = "0.25.1-dev"
+	Version = "0.25.1"
 )
 
 const (
@@ -227,9 +227,10 @@ func NewCLI(cfg Config) (*cobra.Command, error) {
 		addressOutputsCmd(),
 		blocksCmd(),
 		broadcastTxCmd(),
-		checkdbCmd(),
-		createRawTxCmd(),
-		decodeRawTxCmd(),
+		checkDBCmd(),
+		checkDBEncodingCmd(),
+		createRawTxnCmd(),
+		decodeRawTxnCmd(),
 		decryptWalletCmd(),
 		encryptWalletCmd(),
 		lastBlocksCmd(),

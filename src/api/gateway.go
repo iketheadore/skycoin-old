@@ -9,13 +9,12 @@ import (
 	"github.com/skycoin/skycoin/src/wallet"
 )
 
-//go:generate go install
 //go:generate mockery -name Gatewayer -case underscore -inpkg -testonly
 
 // Gatewayer interface for Gateway methods
 type Gatewayer interface {
-	Spend(wltID string, password []byte, coins uint64, dest cipher.Address) (*coin.Transaction, error)
-	CreateTransaction(w wallet.CreateTransactionParams) (*coin.Transaction, []wallet.UxBalance, error)
+	WalletCreateTransaction(w wallet.CreateTransactionParams) (*coin.Transaction, []visor.TransactionInput, error)
+	WalletSignTransaction(wltID string, password []byte, txn *coin.Transaction, signIndexes []int) (*coin.Transaction, []visor.TransactionInput, error)
 	GetWalletBalance(wltID string) (wallet.BalancePair, wallet.AddressBalances, error)
 	GetWallet(wltID string) (*wallet.Wallet, error)
 	GetWallets() (wallet.Wallets, error)
@@ -64,5 +63,5 @@ type Gatewayer interface {
 	GetAddressCount() (uint64, error)
 	GetHealth() (*daemon.Health, error)
 	UnloadWallet(id string) error
-	VerifyTxnVerbose(txn *coin.Transaction) ([]wallet.UxBalance, bool, error)
+	VerifyTxnVerbose(txn *coin.Transaction, signed visor.TxnSignedFlag) ([]visor.TransactionInput, bool, error)
 }

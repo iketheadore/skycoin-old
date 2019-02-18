@@ -7,9 +7,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Add `-disable-header-check` flag to disable host/origin/referer header checks for the node APIs and add `header_check_enabled` parameter in `/health` endpoint.
+
+- Add CLI `checkDBDecoding` command to verify the `skyencoder`-generated binary decoders match the reflect-based decoder
+- Add `unsigned` option to `POST /api/v1/wallet/transaction` to create unsigned transactions from a wallet
+- Add `/api/v2/wallet/transaction/sign` to sign an unsigned transaction with a wallet
+- Add `unsigned` option to `POST /api/v2/transaction/verify` for verifying an unsigned transaction
+
+### Fixed
+
+### Changed
+
+- Duplicate wallets in the wallets folder will prevent the application from starting
+- An empty wallet in the wallets folder will prevent the application from starting
+- Use [`skyencoder`](https://github.com/skycoin/skyencoder)-generated binary encoders/decoders for network and database data, instead of the reflect-based encoders/decoders in `cipher/encoder`.
+
+### Removed
+
+- `/api/v1/explorer/address` endpoint (use `GET /api/v1/transactions?verbose=1` instead). See https://github.com/skycoin/skycoin/blob/develop/src/api/README.md#migrating-from--api-v1-explorer-address
+- The unversioned REST API (the `-enable-unversioned-api` is removed, prefix your API requests with `/api/v1` if they don't have an `/api/vx` prefix already). See https://github.com/skycoin/skycoin/blob/develop/src/api/README.md#migrating-from-the-unversioned-api
+- JSON-RPC 2.0 interface (this is no longer used by the CLI tool, and the REST API supports everything the JSON-RPC 2.0 API does). See https://github.com/skycoin/skycoin/blob/develop/src/api/README.md#migrating-from-the-jsonrpc-api
+- `/api/v1/wallet/spend` endpoint (use `POST /api/v1/wallet/transaction` followed by `POST /api/v1/injectTransaction` instead). See https://github.com/skycoin/skycoin/blob/develop/src/api/README.md#migrating-from--api-v1-spend
+
+## [0.25.1] - 2019-02-08
+
+### Added
 
 - Add CLI `addressTransactions` command
 - Add `/api/v2/wallet/seed/verify` to verify if seed is a valid bip39 mnemonic seed
+- Filter transactions in the History view in the UI
 
 ### Fixed
 
@@ -17,11 +43,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - #2083, Windows desktop wallet sometimes shows "Error#1" on start
 
 ### Changed
+
 - Extend URI specification to allow plain addresses (i.e. without a `skycoin:` prefix)
 - Switch `skycoin-cli` from `urfave/cli` to `spf13/cobra`.
   Now all options of a cli command must only use `--` prefix instead of a mix of `--` and `-` prefixes.
   `-` prefix is only allowed when using shorthand notation.
 - Use an optimized `base58` library for faster address decoding and encoding.
+
 ### Removed
 
 - Remove libskycoin source code. Migrated to https://github.com/skycoin/libskycoin
@@ -448,6 +476,7 @@ Make sure to upgrade to v0.25.0 so that your node will continue to connect once 
 - #350 Wallet name always 'undefined' after loading wallet from seed
 
 [Unreleased]: https://github.com/skycoin/skycoin/compare/master...develop
+[0.25.1]: https://github.com/skycoin/skycoin/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/skycoin/skycoin/compare/v0.24.1...v0.25.0
 [0.24.1]: https://github.com/skycoin/skycoin/compare/v0.24.0...v0.24.1
 [0.24.0]: https://github.com/skycoin/skycoin/compare/v0.23.0...v0.24.0
