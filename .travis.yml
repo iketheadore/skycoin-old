@@ -106,10 +106,10 @@ deploy:
 #   upload-dir: wallet
 #   acl: public_read
 #   region: $AWS_REGION
-	provider: release
-	api_key: $GITHUB_API_KEY
-	file: electron/release/skycoin-0.25.1-gui-electron-osx.dmg
-	skip_cleanup: true
+  provider: release
+  api_key: $GITHUB_API_KEY
+  file: electron/release/skycoin-0.25.1-gui-electron-osx.dmg
+  skip_cleanup: true
   on:
     repo: iketheadore/skycoin
     branch: osx_build_fix
