@@ -96,7 +96,7 @@ script:
 #   # https://github.com/kvld/travisci-telegram TravisCI Telegram Bot integration
 #   webhooks: https://fathomless-fjord-24024.herokuapp.com/notify
 
-# deploy:
+deploy:
 #   provider: s3
 #   access_key_id: $AWS_ACCESS_KEY_ID
 #   secret_access_key: $AWS_SECRET_ACCESS_KEY
@@ -106,6 +106,10 @@ script:
 #   upload-dir: wallet
 #   acl: public_read
 #   region: $AWS_REGION
-#   on:
-#     repo: skycoin/skycoin
-#     branch: master
+	provider: release
+	api_key: $GITHUB_API_KEY
+	file: electron/release/skycoin-0.25.1-gui-electron-osx.dmg
+	skip_cleanup: true
+  on:
+    repo: iketheadore/skycoin
+    branch: osx_build_fix
