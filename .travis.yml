@@ -15,8 +15,8 @@ matrix:
       env: VERSION_UPGRADE_TEST_WAIT_TIMEOUT=60s
 
 branchs:
-	only:
-	  - osx_build_fix
+  only:
+    - osx_build_fix
 
 
 before_install:
