@@ -4,7 +4,7 @@ set -e -o pipefail
 
 KEY_CHAIN=login.keychain
 echo "security create keychain"
-if ! security show-keychain-info $KEY_CHAIN ; then 
+if ! security show-keychain-info $KEY_CHAIN ; then
 	security create-keychain -p travis $KEY_CHAIN ;
 fi
 # Make the keychain the default so identities are found
@@ -23,8 +23,8 @@ security set-keychain-settings -t 3600 -u $KEY_CHAIN
 echo "import distp12"
 security import $GOPATH/src/github.com/skycoin/skycoin/ci-scripts/certs/dist.p12 -k $KEY_CHAIN -P $CERT_PWD  -A /usr/bin/codesign
 # security import ./scripts/certs/dev.p12 -k $KEY_CHAIN -P DEVELOPMENT_KEY_PASSWORD  -T /usr/bin/codesign
-echo "set key partition list"
-security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
+# echo "set key partition list"
+# security set-key-partition-list -S apple-tool:,apple: -s -k travis $KEY_CHAIN
 
 echo "list keychains: "
 security list-keychains
