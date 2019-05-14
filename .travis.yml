@@ -78,14 +78,14 @@ script:
   - make integration-test-disable-gui
   # Enable auth test
   - make integration-test-auth
-  # # Stable integration tests without unconfirmed transactions
-  # - make integration-test-db-no-unconfirmed
-  # - make lint-ui
-  # - make build-ui-travis
-  # - make test-ui
-  # - make test-ui-e2e
-  # Build wallets
-  # - if [[ "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/build-wallet.sh; fi
+  # Stable integration tests without unconfirmed transactions
+  - make integration-test-db-no-unconfirmed
+  - make lint-ui
+  - make build-ui-travis
+  - make test-ui
+  - make test-ui-e2e
+  Build wallets
+  - if [[ "$TRAVIS_PULL_REQUEST" == false ]]; then ./ci-scripts/build-wallet.sh; fi
 
 # notifications:
 #   email:
