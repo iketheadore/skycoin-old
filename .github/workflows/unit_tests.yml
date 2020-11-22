@@ -39,9 +39,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        include:
-          - os: macos-latest
-            uses: nanasess/setup-chromedriver@master
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
@@ -62,7 +59,8 @@ jobs:
     - name: Test
       env:
         TEST_SUIT: integrations
-      uses: gabrielbb/xvfb-action@v1
-      with:
         run: ./ci-scripts/lint-and-test.sh
+#       uses: gabrielbb/xvfb-action@v1
+#       with:
+#         run: ./ci-scripts/lint-and-test.sh
     
