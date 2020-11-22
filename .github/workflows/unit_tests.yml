@@ -39,6 +39,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+        include:
+          - os: macos-latest
+            uses: nanasess/setup-chromedriver@master
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
@@ -55,8 +58,6 @@ jobs:
 
     - name: Install gox
       run: GO111MODULE=off go get github.com/mitchellh/gox
-      
-    - uses: nanasess/setup-chromedriver@master
       
     - name: Test
       env:
