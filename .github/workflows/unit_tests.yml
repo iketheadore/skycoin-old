@@ -59,7 +59,7 @@ jobs:
     - name: Test
       env:
         TEST_SUIT: integrations
-        run: ./ci-scripts/lint-and-test.sh
+      run: ./ci-scripts/lint-and-test.sh
 #       uses: gabrielbb/xvfb-action@v1
 #       with:
 #         run: ./ci-scripts/lint-and-test.sh
