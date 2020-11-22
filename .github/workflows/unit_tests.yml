@@ -12,7 +12,6 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
@@ -30,4 +29,6 @@ jobs:
       run: GO111MODULE=off go get github.com/mitchellh/gox
 
     - name: Test
-      run: ./ci-scripts/lint-and-test.sh units
+      env:
+        TEST_SUIT: units
+      run: ./ci-scripts/lint-and-test.sh
