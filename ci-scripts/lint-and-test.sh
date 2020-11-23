@@ -16,7 +16,7 @@ if [[ ${TEST_SUIT} == "units" ]]; then
 elif [[ ${TEST_SUIT} == "integrations" ]]; then
     echo "Do integration tests"
     make build-ui-travis
-    make test-ui-e2e
+#    make test-ui-e2e
     make integration-test-stable
     make integration-test-stable-disable-wallet-api
     make integration-test-stable-enable-seed-api
