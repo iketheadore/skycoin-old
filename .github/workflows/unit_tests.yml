@@ -21,9 +21,9 @@ jobs:
             - name: Check out code into the Go module directory
               uses: actions/checkout@v2
             - name: Set up Gox
-              run: |
-                export GO111MODULE=off
-                go get github.com/mitchellh/gox
+              env:
+                GO111MODULE: off
+              run: go get github.com/mitchellh/gox
             - name: Install nodejs dependencies
               if: startWith(${{ matrix.os }}, "windows")
               run: ./ci-scripts/install-nodejs-win.sh
