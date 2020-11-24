@@ -8,8 +8,11 @@ on:
 
 jobs:
     Build:
-        name: Build Wallets
-        runs-on: macos-latest
+        name: Build ${{ matrix.os }} Wallets
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, ubuntu-latest]
         steps:
             - name: Set up Go 1.x
               uses: actions/setup-go@v2
