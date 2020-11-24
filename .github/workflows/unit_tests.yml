@@ -27,8 +27,8 @@ jobs:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
-                HEAD_REF: ${{ github.head_ref }}
-              run: echo "$OS_NAME" && echo "$BRANCH" && echo "head ref $HEAD_REF"
+                IS_PR: ${{ github.head_ref }} != ""
+              run: echo "$OS_NAME" && echo "$BRANCH" && echo "is pr $IS_PR"
 
 #    Test:
 #        name: ${{ matrix.test }} tests
