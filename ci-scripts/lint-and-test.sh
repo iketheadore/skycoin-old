@@ -7,16 +7,16 @@ make check-newcoin
 
 if [[ ${TEST_SUIT} == "units" ]]; then
     echo "Do unit tests"
-#    make install-linters
-#    make lint
-#    make lint-ui
-#    make test-386
-#    make test-amd64
+    make lint-ui
     make test-ui
+    make install-linters
+    make lint
+    make test-386
+    make test-amd64
 elif [[ ${TEST_SUIT} == "integrations" ]]; then
     echo "Do integration tests"
     make build-ui-travis
-#    make test-ui-e2e
+    make test-ui-e2e
     make integration-test-stable
     make integration-test-stable-disable-wallet-api
     make integration-test-stable-enable-seed-api
