@@ -20,17 +20,15 @@ jobs:
                   go-version: 1.14
             - name: Check out code into the Go module directory
               uses: actions/checkout@v2
-#            - name: Set up Gox
-#              run: GO111MODULE=off go get github.com/mitchellh/gox
+            - name: Set up Gox
+              run: GO111MODULE=off go get github.com/mitchellh/gox
             - name: Get os name
               env:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
                 EN: ${{ github.event_name }}
-              run: |
-                echo "$EN"
-                echo "${{ github.branch }}
+              run: ./ci-scripts/build-wallet.sh
 
 #    Test:
 #        name: ${{ matrix.test }} tests
