@@ -27,10 +27,8 @@ jobs:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
-              run: |
-                if [[ "${{ github.head_ref }}" != "" ]]; then echo '::set-env IS_PR=true'; else echo '::set-env IS_PR=false'; fi
-            - name: Check IS_PR
-              run: echo "is pr $IS_PR"
+                EN: ${{ gitub.event_name }}
+              run: echo "$EN"
 
 #    Test:
 #        name: ${{ matrix.test }} tests
