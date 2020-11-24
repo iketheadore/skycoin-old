@@ -21,7 +21,7 @@ jobs:
 #              run: GO111MODULE=off go get github.com/mitchellh/gox
             - name: Get os name
               env:
-                OS_NAME: ${{ toJson(runner.os) }}
+                OS_NAME: ${{ runner.os }}
               run: echo "$OS_NAME"
 #    Test:
 #        name: ${{ matrix.test }} tests
