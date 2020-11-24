@@ -27,7 +27,7 @@ jobs:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
-                IS_PR: ${{ (github.head_ref != "") }}
+                IS_PR: ${{ if(github.head_ref != "", true, false) }}
               run: echo "$OS_NAME" && echo "$BRANCH" && echo "is pr $IS_PR"
 
 #    Test:
