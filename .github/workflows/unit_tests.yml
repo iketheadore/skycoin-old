@@ -12,7 +12,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest, ubuntu-latest]
+                os: [ubuntu-latest, macos-latest, windows-latest]
         steps:
             - name: Set up Go 1.x
               uses: actions/setup-go@v2
@@ -25,7 +25,11 @@ jobs:
             - name: Get os name
               env:
                 OS_NAME: ${{ runner.os }}
-              run: echo "$OS_NAME"
+                BRANCH: ${{ github.ref }}
+                BUILD_BRANCHES: '"^(master|develop)$"'
+                HEAD_REF: ${{ github.head_ref }}
+              run: echo "$OS_NAME" && echo "$BRANCH" && echo "head ref $HEAD_REF"
+
 #    Test:
 #        name: ${{ matrix.test }} tests
 #        runs-on: ubuntu-16.04
