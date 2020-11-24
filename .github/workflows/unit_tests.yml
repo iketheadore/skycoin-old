@@ -27,7 +27,7 @@ jobs:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
-                EN: ${{ gitub.event_name }}
+                EN: ${{ github.event_name }}
               run: echo "$EN"
 
 #    Test:
