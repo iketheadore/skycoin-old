@@ -3,6 +3,7 @@ package file
 import (
 	"bytes"
 	"crypto/rand"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -95,7 +96,7 @@ func TestBuildDataDirDotOk(t *testing.T) {
 		gopath = filepath.Join(home, "go")
 	}
 
-	require.True(t, strings.HasPrefix(builtDir, gopath))
+	require.True(t, strings.HasPrefix(builtDir, gopath), fmt.Sprintf("buildDir: %s, gopath: %s", builtDir, gopath))
 	require.NotEqual(t, builtDir, filepath.Clean(gopath))
 }
 

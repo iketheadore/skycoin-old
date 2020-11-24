@@ -1,85 +1,28 @@
 name: Go
 
 on:
-  push:
-    branches: [ develop ]
-  pull_request:
-    branches: [ develop ]
+    push:
+        branches: [ develop ]
+    pull_request:
+        branches: [ develop ]
 
 jobs:
-   unit_tests:
-     name: Unit Test
-     runs-on: ubuntu-latest
-     steps:
-     - name: Set up Go 1.x
-       uses: actions/setup-go@v2
-       with:
-         go-version: 1.14
+    Test:
+        name: ${{ matrix.test }} tests
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                test: [units, integrations]
+        steps:
+            - name: Set up Go 1.x
+              uses: actions/setup-go@v2
+              with:
+                  go-version: 1.14
 
-     - name: Check out code into the Go module directory
-       uses: actions/checkout@v2
+            - name: Check out code into the Go module directory
+              uses: actions/checkout@v2
 
-#     - name: Set up node
-#       uses: actions/setup-node@v2.1.2
-#       with:
-#         node-version: 10.16.3
-
-#     - name: Install gox
-#       run: GO111MODULE=off go get github.com/mitchellh/gox
-
-     - name: Test
-       env:
-         TEST_SUIT: units
-       run: ./ci-scripts/lint-and-test.sh
-
-  integration_tests:
-    name: Integration Test
-    runs-on: ubuntu-latest
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [macos-latest, ubuntu-latest, windows-latest]
-    steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.14
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-
-    - name: Set up node
-      uses: actions/setup-node@v2.1.2
-      with:
-        node-version: 10.16.3
-
-#    - name: Install gox
-#      run: GO111MODULE=off go get github.com/mitchellh/gox
-    - name: Integration Test
-      env:
-        TEST_SUIT: integrations
-      run: ./ci-scripts/lint-and-test.sh
-
-  build_wallets:
-    name: Build Wallets
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-    steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.14
-
-    - name: Check out code into the Go module directory
-      uses: action/checkout@v2
-
-    - name: Set up node
-      uses: actions/setup-node@v2.1.2
-      with:
-        node-version: 10.16.3
-
-    - name: Build Wallets
-      run: ./ci-scripts/build-wallet.sh
-
+            - name: Test
+              env:
+                  TEST_SUIT: ${{ matrix.test }}
+              run: ./ci-scripts/lint-and-test.sh
