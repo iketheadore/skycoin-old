@@ -12,7 +12,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest]
+                os: [windows-latest]
         steps:
             - name: Set up Go 1.x
               uses: actions/setup-go@v2
@@ -22,7 +22,10 @@ jobs:
               uses: actions/checkout@v2
             - name: Set up Gox
               run: GO111MODULE=off go get github.com/mitchellh/gox
-            - name: Get os name
+            - name: Install nodejs dependencies
+              if: startWith(${{ matrix.os }}, "windows")
+              run: ./ci-scripts/install-nodejs-win.sh
+            - name: Build Wallets
               env:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
