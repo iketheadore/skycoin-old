@@ -32,7 +32,7 @@ jobs:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
-                EN: ${{ github.event_name }}
+                EVENT_NAME: ${{ github.event_name }}
               run: ./ci-scripts/build-wallet.sh
 
 #    Test:
