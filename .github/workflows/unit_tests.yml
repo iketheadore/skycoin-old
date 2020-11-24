@@ -28,7 +28,9 @@ jobs:
                 BRANCH: ${{ github.ref }}
                 BUILD_BRANCHES: '"^(master|develop)$"'
                 EN: ${{ github.event_name }}
-              run: echo "$EN"
+              run: |
+                echo "$EN"
+                echo "${{ github.branch }}
 
 #    Test:
 #        name: ${{ matrix.test }} tests
