@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-set -e -ox pipefail
+set -e -o pipefail
 
 
-if [[ "$OS_NAME" == "macOS" ]] && [[ ! "${SIGN_BRANCHES[@]}" =~ "${BRANCH}" || "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+if [[ "$OS_NAME" == "macOS" ]] && [[ ! "${SIGN_BRANCHES[@]}" =~ "${GITHUB_REF}" || "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
     export CSC_IDENTITY_AUTO_DISCOVERY=false;
 fi
 
