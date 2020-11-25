@@ -26,7 +26,7 @@ jobs:
               env:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
-                BUILD_BRANCHES: '"^(master|develop)$"'
+                BUILD_BRANCHES: '"^(master|develop|iketheadore-gh-action)$"'
                 EVENT_NAME: ${{ github.event_name }}
               run: ./ci-scripts/build-wallet.sh
 
