@@ -2,9 +2,8 @@
 
 set -e -ox pipefail
 
-BRANCH="$(basename $BRANCH)"
 
-if [[ "$OS_NAME" == "macOS" ]] && [[ ! "$BRANCH" =~ $BUILD_BRANCHES || "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+if [[ "$OS_NAME" == "macOS" ]] && [[ ! "${SIGN_BRANCHES[@]}" =~ "${BRANCH}" || "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
     export CSC_IDENTITY_AUTO_DISCOVERY=false;
 fi
 

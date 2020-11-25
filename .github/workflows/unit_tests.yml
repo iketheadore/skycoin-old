@@ -26,9 +26,12 @@ jobs:
               env:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
-                BUILD_BRANCHES: '"^(master|develop|iketheadore-gh-action)$"'
-                EVENT_NAME: ${{ github.event_name }}
+                SIGN_BRANCHES: ("/github/heads/master" "/github/heads/develop" "/github/heads/iketheadore-gh-action")
               run: ./ci-scripts/build-wallet.sh
+#                if [[ "$BRANCH" == "github/heads/master" || "$BRANCH" == "github/heads/develop]]; then
+#                else
+#                  SIGN=false ./ci-scripts/build-wallet.sh
+#                fi
 
 #    Test:
 #        name: ${{ matrix.test }} tests
