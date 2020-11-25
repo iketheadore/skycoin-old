@@ -26,7 +26,7 @@ jobs:
               env:
                 OS_NAME: ${{ runner.os }}
                 BRANCH: ${{ github.ref }}
-                SIGN_BRANCHES: ("/github/heads/master" "/github/heads/develop" "/github/heads/iketheadore-gh-action")
+                SIGN_BRANCHES: ("refs/heads/master" "refs/heads/develop" "refs/heads/iketheadore-gh-action")
               run: ./ci-scripts/build-wallet.sh
 #                if [[ "$BRANCH" == "github/heads/master" || "$BRANCH" == "github/heads/develop]]; then
 #                else
