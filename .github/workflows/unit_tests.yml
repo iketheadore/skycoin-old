@@ -2,7 +2,7 @@ name: Go
 
 on:
     push:
-        branches: [ develop, iketheadore-gh-action ]
+        branches: [ develop ]
     pull_request:
         branches: [ develop ]
 
@@ -25,13 +25,8 @@ jobs:
             - name: Build Wallets
               env:
                 OS_NAME: ${{ runner.os }}
-                BRANCH: ${{ github.ref }}
-                SIGN_BRANCHES: ("refs/heads/master" "refs/heads/develop" "refs/heads/iketheadore-gh-action")
+                SIGN_BRANCHES: ("refs/heads/master" "refs/heads/develop")
               run: ./ci-scripts/build-wallet.sh
-#                if [[ "$BRANCH" == "github/heads/master" || "$BRANCH" == "github/heads/develop]]; then
-#                else
-#                  SIGN=false ./ci-scripts/build-wallet.sh
-#                fi
 
 #    Test:
 #        name: ${{ matrix.test }} tests
