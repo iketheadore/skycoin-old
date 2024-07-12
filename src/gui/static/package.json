@@ -26,7 +26,7 @@
     "@ngx-translate/core": "^10.0.2",
     "base-x": "3.0.5",
     "bignumber.js": "^7.2.1",
-    "bootstrap": "^4.0.0-beta.2",
+    "bootstrap": "^5.0.0",
     "core-js": "^2.5.4",
     "font-awesome": "^4.7.0",
     "moment": "^2.21.0",
